@@ -1,8 +1,6 @@
 package;
 
-import Sexpr;
 import Sexpr.*;
-
 
 typedef ReadError = {source: UnicodeString, position: Int, error: String};
 typedef ReadResult = Result<ReadError, Sexpr>;
@@ -72,6 +70,7 @@ class Reader {
   }
 
   var openParens:Int = 0; // not using this for anything i guess....?
+  var canReadComma:Bool = false;
 
   function dropWhitespace() {
     while (isWhitespace( current ))
@@ -95,10 +94,36 @@ class Reader {
           readCons();
         }
         case DOUBLE_QUOTE: readString();
+        case SINGLE_QUOTE: readQuoted();
+        case BACKTICK: readQuasiquote();
+        case COMMA: readComma();
         case num if (isNumericChar(num)): readNumber();
         case symb if (isLegalSymbolChar(symb)): readSymbol();
         default: Err({source:input, position:position, error:"parse failed"});
         };
+  }
+
+  function readQuoted(): ReadResult {
+    position++; // consume the quote
+    return read().then(quoted -> Ok(Cons(Atom(Sym("QUOTE")), quoted)));
+  }
+
+  function readQuasiquote(): ReadResult {
+    position++; // consume the quasiquote
+    canReadComma = true;
+    return read().then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), quoted)));
+  }
+
+  function readComma(): ReadResult {
+    position++;
+    return if (canReadComma)
+      read()
+        .onOk(ignore -> canReadComma = false)
+        .then(expr -> Ok(Cons(Atom(Sym("#UNQUOTE")), expr)))
+      else
+        Err({source:input,
+              position:position,
+              error: "Comma not within a quasiquote"});
   }
 
   function readCons():ReadResult {
