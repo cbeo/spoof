@@ -69,7 +69,6 @@ class Reader {
     return eof || isWhitespace(current) || isClosingBracket(current);
   }
 
-  var openParens:Int = 0; // not using this for anything i guess....?
   var canReadComma:Bool = false;
 
   function dropWhitespace() {
@@ -89,7 +88,6 @@ class Reader {
     return if (eof) Err({source:input, position:position, error:"eof"})
       else switch (current) {
         case LEFT_PAREN: {
-          openParens++;
           position++;    // consume the opening parens
           readCons();
         }
@@ -131,7 +129,6 @@ class Reader {
     dropWhitespace();
 
     if (current == RIGHT_PAREN) {
-      openParens--;
       position++;
       return Ok(Atom(Nil));
     }
@@ -190,6 +187,7 @@ class Reader {
     // valid non-numeric symbol character.
     var startPos = position;
     position++;
+
     while (isLegalSymbolChar( current ) || isNumericChar( current ))
       position++;
     if ( endOfTerm ) {
