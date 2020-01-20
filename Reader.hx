@@ -102,17 +102,17 @@ class Reader {
   }
 
   function readCons():ReadResult {
+
+    dropWhitespace();
+
+    if (current == RIGHT_PAREN) {
+      openParens--;
+      position++;
+      return Ok(Atom(Nil));
+    }
+
     return read()
-      .then(head -> {
-          dropWhitespace();
-          if (current == RIGHT_PAREN) {
-            openParens--;
-            position++;   // consome the closing parens
-            return Ok(Cons(head, Atom(Nil)));
-          } else {
-            return readCons().map(tail -> Cons(head,tail));
-          }
-        });
+      .then(head -> readCons().map(tail -> Cons(head,tail)));
   }
 
   function readString():ReadResult {
