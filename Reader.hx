@@ -21,6 +21,7 @@ class Reader {
   inline static var COMMA:Int = 44;
   inline static var BACKSLASH:Int = 92; // for escapes in strings.
   inline static var PERIOD:Int = 46;
+  inline static var AT_CHARACTER:Int = 64;
 
   inline static var SYMBOL_NAME_CHARS :UnicodeString = "+=-*&^%$!@~?/<>";
 
@@ -118,9 +119,16 @@ class Reader {
     position++;
     if (quasiquoteNesting > 0) {
       quasiquoteNesting--;     // denest by one level for one expression
+      var unquoteSymbol = Atom(Sym("#UNQUOTE"));
+
+      if (current == AT_CHARACTER) {
+        unquoteSymbol = Atom(Sym("#SPLICE"));
+        position++;
+      }
+
       return read()
         .onOk(ignore -> quasiquoteNesting++) // restore quasiquoteNesting
-        .then(expr -> Ok(Cons(Atom(Sym("#UNQUOTE")), expr)));
+        .then(expr -> Ok(Cons(unquoteSymbol, expr)));
     } else {
       return Err({source:input,
             position:position,
