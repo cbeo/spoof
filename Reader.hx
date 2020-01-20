@@ -52,7 +52,7 @@ class Reader {
   /// INSTANCE VARIABLES
 
   var position:Int;
-  var input:UnicodeString;
+  public var input(default,null):UnicodeString;
 
   var eof(get,never):Bool;
   function get_eof():Bool {
@@ -69,7 +69,7 @@ class Reader {
     return eof || isWhitespace(current) || isClosingBracket(current);
   }
 
-  var canReadComma:Bool = false;
+  var quasiquoteNesting:Int = 0;
 
   function dropWhitespace() {
     while (isWhitespace( current ))
@@ -107,21 +107,25 @@ class Reader {
   }
 
   function readQuasiquote(): ReadResult {
-    position++; // consume the quasiquote
-    canReadComma = true;
-    return read().then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), quoted)));
+    position++;           // consume the quasiquote
+    quasiquoteNesting++;  // increment quasiquote count
+    return read()
+      .onOk(ignore -> quasiquoteNesting--)
+      .then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), quoted)));
   }
 
   function readComma(): ReadResult {
     position++;
-    return if (canReadComma)
-      read()
-        .onOk(ignore -> canReadComma = false)
-        .then(expr -> Ok(Cons(Atom(Sym("#UNQUOTE")), expr)))
-      else
-        Err({source:input,
-              position:position,
-              error: "Comma not within a quasiquote"});
+    if (quasiquoteNesting > 0) {
+      quasiquoteNesting--;     // denest by one level for one expression
+      return read()
+        .onOk(ignore -> quasiquoteNesting++) // restore quasiquoteNesting
+        .then(expr -> Ok(Cons(Atom(Sym("#UNQUOTE")), expr)));
+    } else {
+      return Err({source:input,
+            position:position,
+            error: "Comma not within a quasiquote"});
+    }
   }
 
   function readCons():ReadResult {
