@@ -48,7 +48,7 @@ class Reader {
   }
 
   static function isNumericChar(char:Int): Bool {
-    return char >= 49 && char <= 57;
+    return char >= 48 && char <= 57;
   }
 
   /// INSTANCE VARIABLES
@@ -71,7 +71,7 @@ class Reader {
     return eof || isWhitespace(current) || isClosingBracket(current);
   }
 
-  var openParens:Int = 0;
+  var openParens:Int = 0; // not using this for anything i guess....?
 
   function dropWhitespace() {
     while (isWhitespace( current ))
@@ -130,33 +130,25 @@ class Reader {
 
   function readNumber():ReadResult {
 
-    var buf = new StringBuf();
+    var startPos = position;
     var isFloat = false;
 
-    // collect digits into the buffer
-    do {
-      buf.addChar( current );
+    while ( isNumericChar( current ))
       position++;
-    } while ( isNumericChar( current ) );
 
-    // if we find a dot character then we're parsing a Float. Set the isFloat flag, collect
-    // the dot character and return to collecting digits.
     if (current == PERIOD) {
-      buf.addChar(current);
       isFloat = true;
       position++;
 
-      do {
-        buf.addChar( current );
+      while ( isNumericChar( current ))
         position++;
-      } while ( isNumericChar( current ) );
     }
 
     // once we're done collecting digits, check that the next character is a
     // whitespace or some kind of ending bracket. I.e. like the ')' in '(1 2 3)'
     if ( endOfTerm ) {
       // if everythign checks out, stringify our buffer and parse.
-      var str = buf.toString();
+      var str = input.substring(startPos, position);
 
       return if (isFloat) Ok(Atom(R(Std.parseFloat(str))))
         else Ok(Atom(Z(Std.parseInt(str))));
