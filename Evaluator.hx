@@ -18,6 +18,9 @@ class Evaluator {
     case Atom(Sym("TRUE")):
       Ok(Atom(True));
 
+    case Atom(Kwd(_)):
+      Ok(sexpr);
+
     case Atom(Sym(name)):
       evalSymbol(name, env);
 

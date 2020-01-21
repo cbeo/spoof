@@ -21,7 +21,9 @@ class Reader {
   inline static var COMMA:Int = 44;
   inline static var BACKSLASH:Int = 92; // for escapes in strings.
   inline static var PERIOD:Int = 46;
-  inline static var AT_CHARACTER:Int = 64;
+  inline static var AT_SIGN:Int = 64;
+  inline static var COLON:Int = 58;
+  inline static var SEMICOLON:Int = 59;
 
   inline static var SYMBOL_NAME_CHARS :UnicodeString = "+=-*&^%$!@~?/<>";
 
@@ -30,6 +32,13 @@ class Reader {
     case SPACE | NEWLINE | HTAB | RETURN: true;
     default: false;
     };
+  }
+
+  static function isLineBreak(char:Int): Bool {
+    return switch (char) {
+    case NEWLINE | RETURN: true;
+    default: false;
+    }
   }
 
   static function isAlpha(char:Int): Bool {
@@ -77,6 +86,12 @@ class Reader {
       position++;
   }
 
+  function dropLine() {
+    while (!isLineBreak( current )) {
+      position++;
+    }
+  }
+
   public function reset(newInput:String) {
     input = newInput;
     position = 0;
@@ -92,6 +107,11 @@ class Reader {
           position++;    // consume the opening parens
           readCons();
         }
+        case SEMICOLON: {
+          dropLine();
+          read();
+        }
+        case COLON: readKeyword();
         case DOUBLE_QUOTE: readString();
         case SINGLE_QUOTE: readQuoted();
         case BACKTICK: readQuasiquote();
@@ -100,6 +120,11 @@ class Reader {
         case symb if (isLegalSymbolChar(symb)): readSymbol();
         default: Err({source:input, position:position, error:"read failed"});
         };
+  }
+
+  function readKeyword(): ReadResult {
+    position++; // consume the colon
+    return readSymbol().map(symb -> Atom(Kwd(symb.symbolName())));
   }
 
   function readQuoted(): ReadResult {
@@ -121,7 +146,7 @@ class Reader {
       quasiquoteNesting--;     // denest by one level for one expression
       var unquoteSymbol = Atom(Sym("#UNQUOTE"));
 
-      if (current == AT_CHARACTER) {
+      if (current == AT_SIGN) {
         unquoteSymbol = Atom(Sym("#SPLICE"));
         position++;
       }

@@ -8,6 +8,7 @@ enum Atomic {
   R(f:Float);           // float
   Str(s:UnicodeString); // string
   Sym(s:UnicodeString); // symbol
+  Kwd(s:UnicodeString); // keywords
   Char(c:Int);          // Unicode Character?
   Fn(fn:FnType);
   Ob(ob:Dynamic);       // any non-readible object (arrays, vecs, class instances, etc)

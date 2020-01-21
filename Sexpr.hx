@@ -32,6 +32,15 @@ class SexprExtensions {
     };
   }
 
+  // intended to get the name of symbols
+  public static function symbolName(expr:Sexpr):UnicodeString {
+    return switch (expr) {
+    case Atom(Sym(name)): name;
+    case Atom(Kwd(name)): name;
+    default: throw "Fatal Error. symbolName called with non-symbol argument";
+    }
+  }
+
   public static function head(exp:Sexpr):Option<Sexpr> {
     return switch (exp) {
     case Atom(Nil): Some(exp);
