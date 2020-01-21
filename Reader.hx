@@ -104,7 +104,7 @@ class Reader {
 
   function readQuoted(): ReadResult {
     position++; // consume the quote
-    return read().then(quoted -> Ok(Cons(Atom(Sym("QUOTE")), quoted)));
+    return read().then(quoted -> Ok(Cons(Atom(Sym("QUOTE")), Cons(quoted, Atom(Nil)))));
   }
 
   function readQuasiquote(): ReadResult {
