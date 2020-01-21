@@ -18,10 +18,10 @@ class Evaluator {
     case Atom(_):
       Ok(sexpr);
 
-    case Cons(Atom(Sym("QUOTE")), expr):
+    case Cons(Atom(Sym("QUOTE")), Cons(expr,Atom(Nil))):
       Ok(expr);
 
-    case Cons(Atom(Sym("IF")), Cons(condExpr, Cons(thenExpr,elseExpr))):
+    case Cons(Atom(Sym("IF")), Cons(condExpr, Cons(thenExpr,Cons(elseExpr,_)))):
       evalIf(condExpr, thenExpr, elseExpr, env, fenv);
 
     case Cons(Atom(Sym("DO")), rest):
