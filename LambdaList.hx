@@ -4,6 +4,22 @@ import Sexpr.*;
 
 class LambdaList {
 
+  public static function isValidExpression(sexpr:Sexpr):Bool {
+    var valid = true;
+    sexpr.foreach( val -> {
+        switch (val) {
+        case Atom(Nil) | Atom(True) | Atom(Sym("TRUE")) | Atom(Sym("NIL")):
+          valid = false;
+
+        case expr:
+          if (!expr.isSymbol())
+            valid = false;
+        }
+      });
+    return valid;
+  }
+
+
   var structure:Sexpr;
 
   // TODO: handle &OPTION and &KEY arguments

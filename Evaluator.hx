@@ -78,6 +78,9 @@ class Evaluator {
                         fenv:Env<FnType>
                         ): EvalResult {
 
+    if (!LambdaList.isValidExpression(lambdaListExpr))
+      return Err(MalformedLambdaList(lambdaListExpr));
+
     var lambdaList = new LambdaList(lambdaListExpr);
 
     var f =
@@ -85,7 +88,7 @@ class Evaluator {
       {
        return switch (lambdaList.bind( vals )) {
        case Some(bindings): eval(body, env.extend( bindings ), fenv);
-       case None:  Err(MalformedLambdaList(lambdaListExpr, vals));
+       case None:  Err(BadFunctionApplication(lambdaListExpr, vals));
        }
       };
     return Ok(Atom(Fn(f)));

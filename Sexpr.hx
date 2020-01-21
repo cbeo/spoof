@@ -25,6 +25,13 @@ class SexprExtensions {
     return !isCons(expr);
   }
 
+  public static function isSymbol(expr:Sexpr):Bool {
+    return switch (expr) {
+    case Atom(Sym(_)): true;
+    case _: false;
+    };
+  }
+
   public static function head(exp:Sexpr):Option<Sexpr> {
     return switch (exp) {
     case Atom(Nil): Some(exp);
@@ -65,4 +72,16 @@ class SexprExtensions {
       }
     return reverse(acc);
   }
+
+  public static function foreach(exp:Sexpr, fn:Sexpr->Void) {
+    while ( !isNil(exp) ) switch (exp) {
+      case Cons(hd,tl): {
+        fn(hd);
+        exp = tl;
+      }
+      default: throw "Fatial Error while mapping list";
+      }
+  }
+
+
 }

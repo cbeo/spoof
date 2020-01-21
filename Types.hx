@@ -16,7 +16,8 @@ enum Atomic {
 enum EvalError {
   UnboundSymbol(s:UnicodeString);
   UnboundFunctionSymbol(s:UnicodeString);
-  MalformedLambdaList(ll: Sexpr, vals:Sexpr);
+  BadFunctionApplication(ll: Sexpr, vals:Sexpr);
+  MalformedLambdaList(ll:Sexpr);
   SyntaxError(expr:Sexpr);
 }
 
