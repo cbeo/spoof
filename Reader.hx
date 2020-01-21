@@ -98,7 +98,7 @@ class Reader {
         case COMMA: readComma();
         case num if (isNumericChar(num)): readNumber();
         case symb if (isLegalSymbolChar(symb)): readSymbol();
-        default: Err({source:input, position:position, error:"parse failed"});
+        default: Err({source:input, position:position, error:"read failed"});
         };
   }
 

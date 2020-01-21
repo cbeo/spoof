@@ -12,6 +12,12 @@ class Evaluator {
     var currentFenv = if (fenv != null) fenv else globalFenv;
 
     return switch (sexpr) {
+    case Atom(Sym("NIL")):
+      Ok(Atom(Nil));
+
+    case Atom(Sym("TRUE")):
+      Ok(Atom(True));
+
     case Atom(Sym(name)):
       evalSymbol(name, env);
 

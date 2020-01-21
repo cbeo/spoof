@@ -7,7 +7,7 @@ class Printer {
 
     switch (s) {
     case Atom(Nil): buf.add("NIL");
-    case Atom(True): buf.add("true");
+    case Atom(True): buf.add("TRUE");
     case Atom(Z(i)): buf.add(Std.string(i));
     case Atom(R(f)): buf.add(Std.string(f));
     case Atom(Str(s)): buf.add('"$s"');
