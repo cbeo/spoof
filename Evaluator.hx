@@ -61,16 +61,37 @@ class Evaluator {
   }
 
   function evalDo(expr: Sexpr, env, fenv): EvalResult {
-    return switch (expr) {
-    case Atom(_): Ok(expr);        // I think this only happens when expr is Nil...??
+    switch (expr) {
+    case Atom(_):
+      return Ok(expr);        // I think this only happens when expr is Nil...??
 
-    case Cons(head, Atom(Nil)):
-      eval(head, env, fenv);
+    default: 
+      // otherwise its a list of expressions.
+      while (true) 
+        switch (expr) {
 
-    case Cons(head, tail):
-      eval(head, env, fenv).then(ignore -> eval(tail, env, fenv));
-    };
+        case Cons(hd, Atom(Nil)):
+          return eval(hd, env, fenv);
+
+        case Cons(hd, tl): {
+          eval(hd, env, fenv);
+          expr = tl;
+        }
+
+        default:
+          throw "Fatal Error in evalDo";
+        }
+    }
   }
+
+
+  //   case Cons(head, Atom(Nil)):
+  //     eval(head, env, fenv);
+
+  //   case Cons(head, tail):
+  //     eval(head, env, fenv).then(ignore -> eval(tail, env, fenv));
+  //   };
+  // }
 
   function makeFunction(lambdaListExpr: Sexpr,
                         body: Sexpr,
