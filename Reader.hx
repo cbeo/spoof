@@ -112,7 +112,7 @@ class Reader {
     quasiquoteNesting++;  // increment quasiquote count
     return read()
       .onOk(ignore -> quasiquoteNesting--)
-      .then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), quoted)));
+      .then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted, Atom(Nil)))));
   }
 
   function readComma(): ReadResult {
@@ -128,7 +128,7 @@ class Reader {
 
       return read()
         .onOk(ignore -> quasiquoteNesting++) // restore quasiquoteNesting
-        .then(expr -> Ok(Cons(unquoteSymbol, expr)));
+        .then(expr -> Ok(Cons(unquoteSymbol, Cons(expr, Atom(Nil)))));
     } else {
       return Err({source:input,
             position:position,

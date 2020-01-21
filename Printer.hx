@@ -18,6 +18,18 @@ class Printer {
     }
     case Atom(Fn(f)): buf.add(Std.string(f));
     case Atom(Ob(ob)): buf.add(Std.string(ob));
+    case Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted,Atom(Nil))): {
+      buf.add("`");
+      buf.add( printToString( quoted ));
+    }
+    case Cons(Atom(Sym("#UNQUOTE")), Cons(unquoted, Atom(Nil))): {
+      buf.add(",");
+      buf.add( printToString( unquoted ));
+    }
+    case Cons(Atom(Sym("#SPLICE")), Cons(spliced, Atom(Nil))): {
+      buf.add(",@");
+      buf.add( printToString( spliced ));
+    }
     case Cons(hd, Atom(Nil)): {
       if (!inList) buf.add("(");
       buf.add( printToString(hd) );

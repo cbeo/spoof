@@ -108,7 +108,7 @@ class Evaluator {
       function (vals:Sexpr)
       {
        return switch (lambdaList.bind( vals )) {
-       case Some(bindings): eval(body, env.extend( bindings ), fenv);
+       case Some(bindings): evalDo(body, env.extend( bindings ), fenv);
        case None:  Err(BadFunctionApplication(lambdaListExpr, vals));
        }
       };
