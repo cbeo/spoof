@@ -18,19 +18,16 @@ class Evaluator {
     case Atom(Sym("TRUE")):
       Ok(Atom(True));
 
-    case Atom(Kwd(_)):
-      Ok(sexpr);
-
     case Atom(Sym(name)):
       evalSymbol(name, env);
 
-    case Atom(_):
+    case Atom(_): // keywords, strings, numbers, objects, functions
       Ok(sexpr);
 
     case Cons(Atom(Sym("QUOTE")), Cons(expr,Atom(Nil))):
       Ok(expr);
 
-    case Cons(Atom(Sym("IF")), Cons(condExpr, Cons(thenExpr,Cons(elseExpr,_)))):
+    case Cons(Atom(Sym("IF")), Cons(condExpr, Cons(thenExpr, elseExpr))):
       evalIf(condExpr, thenExpr, elseExpr, env, fenv);
 
     case Cons(Atom(Sym("DO")), rest):
@@ -57,7 +54,11 @@ class Evaluator {
 
   function evalIf(condExpr, thenExpr, elseExpr, env, fenv): EvalResult {
     return switch (eval(condExpr, env, fenv)) {
-    case Ok(Atom(Nil)): eval( elseExpr, env, fenv);
+    case Ok(Atom(Nil)): switch (elseExpr) {
+      case Cons(elseExpr2, Atom(Nil)): eval( elseExpr2, env, fenv);
+      case Atom(Nil): Ok(Atom(Nil));
+      default: Err(MalformedIfForm(Cons(Atom(Sym("IF")), Cons(thenExpr, elseExpr))));
+      }
     case Ok(_): eval( thenExpr, env, fenv );
     case anError: anError;
     };
@@ -86,15 +87,6 @@ class Evaluator {
         }
     }
   }
-
-
-  //   case Cons(head, Atom(Nil)):
-  //     eval(head, env, fenv);
-
-  //   case Cons(head, tail):
-  //     eval(head, env, fenv).then(ignore -> eval(tail, env, fenv));
-  //   };
-  // }
 
   function makeFunction(lambdaListExpr: Sexpr,
                         body: Sexpr,

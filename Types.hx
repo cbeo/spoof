@@ -19,6 +19,7 @@ enum EvalError {
   UnboundFunctionSymbol(s:UnicodeString);
   BadFunctionApplication(ll: Sexpr, vals:Sexpr);
   MalformedLambdaList(ll:Sexpr);
+  MalformedIfForm(form:Sexpr);
   SyntaxError(expr:Sexpr);
 }
 
