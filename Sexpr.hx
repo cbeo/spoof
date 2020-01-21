@@ -1,16 +1,5 @@
 package;
 
-enum Atomic {
-  Nil;                // nil
-  True;               // the true value
-  Z(i:Int);             // integer
-  R(f:Float);           // float
-  Str(s:UnicodeString); // string
-  Sym(s:UnicodeString); // symbol
-  Char(c:Int);          // Unicode Character?
-}
-
-
 @:using(Sexpr.SexprExtensions)
 enum Sexpr {
   Atom(a:Atomic);
@@ -32,6 +21,10 @@ class SexprExtensions {
     }
   }
 
+  public static function isAtom(expr:Sexpr):Bool {
+    return !isCons(expr);
+  }
+
   public static function head(exp:Sexpr):Option<Sexpr> {
     return switch (exp) {
     case Atom(Nil): Some(exp);
@@ -46,5 +39,30 @@ class SexprExtensions {
     case Cons(_,tl): Some(tl);
     case _: None;
     }
+  }
+
+  public static function reverse(exp:Sexpr):Sexpr {
+    var acc = Atom(Nil);
+
+    while ( !isNil(exp) ) switch (exp) {
+      case Cons(hd,tl): {
+        acc = Cons(hd, acc);
+        exp = tl;
+      }
+      default: throw "Fatal Error while reversing list";
+      }
+    return acc;
+  }
+
+  public static function map(exp:Sexpr, fn:Sexpr->Sexpr):Sexpr {
+    var acc = Atom(Nil);
+    while ( !isNil(exp) ) switch (exp) {
+      case Cons(hd,tl): {
+        acc = Cons(fn(hd), acc);
+        exp = tl;
+      }
+      default: throw "Fatial Error while mapping list";
+      }
+    return reverse(acc);
   }
 }
