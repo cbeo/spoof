@@ -286,10 +286,10 @@ class Reader {
   // input is eof.
   function rawRead(?stop:Int->Bool):UnicodeString {
     if (stop == null)
-      stop = isWhitespace;
+      stop = (c) -> isClosingBracket(c) || isWhitespace(c);
 
     var p = position;
-    while (!stop(current) && !endOfTerm)
+    while (!stop(current) && !eof)
       position++;
 
     return input.substring(p,position);
