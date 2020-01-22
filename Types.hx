@@ -21,6 +21,7 @@ enum EvalError {
   MalformedLambdaList(ll:Sexpr);
   MalformedIfForm(form:Sexpr);
   BadFunctionVal(form:Sexpr);
+  SpliceError(s:Sexpr);
   SyntaxError(expr:Sexpr);
 }
 

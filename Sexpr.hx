@@ -65,7 +65,7 @@ class SexprExtensions {
         acc = Cons(hd, acc);
         exp = tl;
       }
-      default: throw "Fatal Error while reversing list";
+      default: {}
       }
     return acc;
   }
@@ -88,7 +88,7 @@ class SexprExtensions {
         fn(hd);
         exp = tl;
       }
-      default: throw "Fatial Error while mapping list";
+      default: {}
       }
   }
 

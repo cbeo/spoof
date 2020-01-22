@@ -42,6 +42,9 @@ class Evaluator {
     case Atom(_): // keywords, strings, numbers, objects, functions
       Ok(sexpr);
 
+    case Cons(Atom(Sym("#QUASIQUOTE")), Cons(expr, Atom(Nil))):
+      evalQuasiQuoted(expr, env, fenv);
+
     case Cons(Atom(Sym("QUOTE")), Cons(expr,Atom(Nil))):
       Ok(expr);
 
@@ -62,11 +65,45 @@ class Evaluator {
 
     default:
       Err(SyntaxError(sexpr));
-
     };
   }
 
+  function evalQuasiQuoted(sexpr:Sexpr, env:Env<Sexpr>, fenv:Env<FnType>): EvalResult {
+    var acc = Atom(Nil);
 
+    while (!sexpr.isNil()) {
+      switch (sexpr) {
+      case Cons(Cons(Atom(Sym("#UNQUOTE")), Cons(expr, Atom(Nil))), rest): {
+        sexpr = rest;
+        switch ( eval(expr, env, fenv) ) {
+        case Ok(val):
+          acc = Cons(val, acc);
+        case anError:
+          return anError;
+        }
+      };
+      case Cons(Cons(Atom(Sym("#SPLICE")), Cons(expr, Atom(Nil))), rest): {
+        sexpr = rest;
+        var toSplice = eval(expr, env, fenv);
+        switch ( toSplice ) {
+        case Ok(Atom(val)):
+          return Err(SpliceError(Atom(val)));
+        case Ok(vals): 
+          vals.foreach(hd -> acc = Cons(hd,acc));
+        case anError: return anError;
+        }
+      };
+      case Cons(first,rest): {
+        sexpr = rest;
+        acc = Cons(first,acc);
+      };
+      default: {};
+      }
+    } // end while
+    return Ok(acc.reverse());
+  }
+
+    
   function evalSymbol(name:UnicodeString, env):EvalResult {
     return switch (env.lookup(name)) {
     case Some(val): Ok(val);
