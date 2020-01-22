@@ -20,6 +20,7 @@ enum EvalError {
   BadFunctionApplication(ll: Sexpr, vals:Sexpr);
   MalformedLambdaList(ll:Sexpr);
   MalformedIfForm(form:Sexpr);
+  BadFunctionVal(form:Sexpr);
   SyntaxError(expr:Sexpr);
 }
 

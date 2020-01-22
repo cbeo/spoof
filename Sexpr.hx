@@ -92,5 +92,11 @@ class SexprExtensions {
       }
   }
 
+  public static function list(a:Array<Sexpr>):Sexpr {
+    var sexpr = Atom(Nil);
+    a.reverse();
+    for (s in a) sexpr = Cons(s,sexpr);
+    return sexpr;
+  }
 
 }

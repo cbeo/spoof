@@ -2,14 +2,32 @@ package;
 
 import Sexpr.*;
 
+// Special forms to include: quote, if, do (which is like progn in CL), lambda,
+// let, labels, function, throw, catch, mut (which is like setf in CL)
+
+/* SPECIAL FORMS
+ 
+- QUOTE, IF    : do what you'd expect
+- DO           : is like PROGN in CL or BEGIN in Scheme
+- LAMBDA       : should be as close as possible to CL's lambda
+- FUNCTION     : lookups up a symbol in the function environment
+- LET          : basically CL's let*
+- LABELS       : should behave much like CL's labels
+- MUT          : behaves like CL's Setf
+
+// 
+
+*/
+
 class Evaluator {
 
   var globalEnv: Env<Sexpr>;
   var globalFenv: Env<FnType>;
+  var macroEnv:Env<FnType>;
 
   public function eval(sexpr:Sexpr, ?env:Env<Sexpr>, ?fenv:Env<FnType>):EvalResult {
-    var currentEnv = if (env != null) env else globalEnv;
-    var currentFenv = if (fenv != null) fenv else globalFenv;
+    env = if (env == null) globalEnv else env;
+    fenv = if (fenv == null) globalFenv else fenv;
 
     return switch (sexpr) {
     case Atom(Sym("NIL")):
@@ -36,14 +54,18 @@ class Evaluator {
     case Cons(Atom(Sym("LAMBDA")),  Cons(lambdaList, body)):
       makeFunction(lambdaList, body, env, fenv);
 
-    case Cons(Atom(Sym(fname)), args):
-      functionApplication(fname, args, env, fenv);
+    case Cons(Atom(Sym("FUNCTION")), Cons( fn, Atom(Nil))):
+      evalFunctionLookup(fn, env, fenv);
+
+    case Cons(fexpr, args):
+      functionApplication(fexpr, args, env, fenv);
 
     default:
       Err(SyntaxError(sexpr));
 
     };
   }
+
 
   function evalSymbol(name:UnicodeString, env):EvalResult {
     return switch (env.lookup(name)) {
@@ -110,19 +132,35 @@ class Evaluator {
     return Ok(Atom(Fn(f)));
   }
 
-  function functionApplication(fname:UnicodeString,
+  function evalFunctionLookup(f:Sexpr, env:Env<Sexpr>, fenv:Env<FnType>):EvalResult {
+    // f is either an Atom(Fn(_)), a Cons(Atom(Sym("LAMBDA")), _), or an Atom(Sym("name"))
+    return switch(f) {
+    case Atom(Fn(_)): Ok(f);
+    case Atom(Sym(fname)):
+      switch (fenv.lookup(fname)) {
+      case Some(fnVal): Ok(Atom(Fn(fnVal)));
+      case None: Err(UnboundFunctionSymbol(fname));
+      };
+    case Cons(Atom(Sym("LAMBDA")), Cons(lambdaList, body)):
+      makeFunction(lambdaList, body, env, fenv);
+    default:
+      Err(BadFunctionVal(f));
+    };
+  }
+
+
+  function functionApplication(fexpr:Sexpr,
                                args:Sexpr,
                                env:Env<Sexpr>,
                                fenv:Env<FnType>
                                ): EvalResult {
-    switch (fenv.lookup( fname )) {
-    case None:
-      return Err(UnboundFunctionSymbol(fname));
-
-    case Some(fn):
-      return evalList(args, env, fenv).then(fn);
-    }    
+    return evalFunctionLookup(fexpr, env, fenv)
+      .then(fnTerm -> switch (fnTerm) {
+        case Atom(Fn(fn)): evalList(args, env, fenv).then(fn);
+        default: Err(BadFunctionVal(fexpr)); // wont happen
+        });
   }
+
 
   function evalList(args: Sexpr, env: Env<Sexpr>, fenv: Env<FnType>): EvalResult {
     var acc = Atom(Nil);
