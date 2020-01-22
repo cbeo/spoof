@@ -5,6 +5,11 @@ import Sexpr.*;
 typedef ReadError = {source: UnicodeString, position: Int, error: String};
 typedef ReadResult = Result<ReadError, Sexpr>;
 
+enum ReaderMacro {
+  SingleFormMacro(fn:UnicodeString->Sexpr);
+  StopCharacterMacro(stopChar: Int, fn:UnicodeString->Sexpr);
+}
+
 class Reader {
 
   /// STATIC VARIABLES
@@ -24,6 +29,7 @@ class Reader {
   inline static var AT_SIGN:Int = 64;
   inline static var COLON:Int = 58;
   inline static var SEMICOLON:Int = 59;
+  inline static var OCTOTHORPE:Int = 0x23;
 
   inline static var SYMBOL_NAME_CHARS :UnicodeString = "+=-*&^%$!@~?/<>";
 
@@ -59,18 +65,31 @@ class Reader {
     return char >= 48 && char <= 57;
   }
 
+  static function interperetAsChar(raw:UnicodeString): Sexpr {
+    return switch (raw.toUpperCase()) {
+    case "": Atom(Char(0)); // the null char.
+    case "SPACE": Atom(Char(SPACE));
+    case "NEWLINE": Atom(Char(NEWLINE));
+    case "TAB": Atom(Char(HTAB));
+    case ch if(ch.length == 1): Atom(Char(raw.charCodeAt(0)));
+    default: throw 'Cannot interperet $raw as a character';
+    };
+  }
+
   /// INSTANCE VARIABLES
 
   var position:Int;
   public var input(default,null):UnicodeString;
+
+  var readerMacros:Map<Int,ReaderMacro>;
 
   var eof(get,never):Bool;
   function get_eof():Bool {
     return position >= input.length;
   }
 
-  var current(get,never):Int;
-  function get_current():Int {
+  var current(get,never):Null<Int>;
+  function get_current():Null<Int> {
     return input.charCodeAt(position);
   }
 
@@ -116,10 +135,35 @@ class Reader {
         case SINGLE_QUOTE: readQuoted();
         case BACKTICK: readQuasiquote();
         case COMMA: readComma();
+        case OCTOTHORPE: readReaderMacro();
         case num if (isNumericChar(num)): readNumber();
         case symb if (isLegalSymbolChar(symb)): readSymbol();
         default: Err({source:input, position:position, error:"read failed"});
         };
+  }
+
+  function readReaderMacro(): ReadResult {
+    position++;  // consume OCTOTHORPE
+    if ( !readerMacros.exists( current ) )
+      return Err({source:input, position:position, error: "no reader macro found"});
+
+    try {
+      return switch ( readerMacros[ current] ) {
+      case SingleFormMacro(macroFn): {
+        position++; // consume macro character
+        Ok(macroFn(rawRead()));
+      }
+      
+      case StopCharacterMacro(stopChar, macroFn): {
+        position++; // consume macro character
+        var raw = rawRead(c -> c == stopChar);
+        position++; //consume the stop character
+        Ok(macroFn(rawRead()));
+      };
+      };
+    } catch (e:Dynamic) {
+      return Err({source:input, position:position, error: 'While processing a reader macro: $e'});
+    }
   }
 
   function readKeyword(): ReadResult {
@@ -227,6 +271,7 @@ class Reader {
 
     while (isLegalSymbolChar( current ) || isNumericChar( current ))
       position++;
+
     if ( endOfTerm ) {
       var symb = (input.substring(startPos, position) : String).toUpperCase();
       return Ok(Atom(Sym(symb)));
@@ -235,10 +280,24 @@ class Reader {
     }
   }
 
+  // consumes input until stop charcter is encountered, then returns a string,
+  // leaving the stop character on the input - or, if eof was encountered, then
+  // input is eof.
+  function rawRead(?stop:Int->Bool):UnicodeString {
+    if (stop == null)
+      stop = isWhitespace;
 
-  public function new(source: UnicodeString, ?pos:Int = 0) {
+    var p = position;
+    while (!stop(current) && !endOfTerm)
+      position++;
+
+    return input.substring(p,position);
+  }
+
+  public function new(source: UnicodeString) {
     input = source;
-    position = pos;
+    position = 0;
+    readerMacros = [ BACKSLASH =>  SingleFormMacro(interperetAsChar)];
   }
 
 
