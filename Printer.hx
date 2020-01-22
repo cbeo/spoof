@@ -18,8 +18,23 @@ class Printer {
     }
     case Atom(Char(c)): {
       buf.add("#\\");
-      buf.addChar(c);
-    }
+      switch (c) {
+      case Reader.NEWLINE:
+        buf.add("Newline");
+
+      case Reader.SPACE:
+        buf.add("Space");
+
+      case Reader.HTAB:
+        buf.add("Tab");
+
+      case Reader.RETURN:
+        buf.add("Return");
+
+      default:
+        buf.addChar(c);
+      }
+    };
     case Atom(Fn(f)): buf.add(Std.string(f));
     case Atom(Ob(ob)): buf.add(Std.string(ob));
     case Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted,Atom(Nil))): {

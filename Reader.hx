@@ -16,10 +16,10 @@ class Reader {
 
   inline static var LEFT_PAREN:Int = 40;
   inline static var RIGHT_PAREN:Int = 41;
-  inline static var SPACE:Int = 32;
-  inline static var HTAB:Int = 9;
-  inline static var NEWLINE:Int = 10;
-  inline static var RETURN:Int = 13;
+  inline public static var SPACE:Int = 32;
+  inline public static var HTAB:Int = 9;
+  inline public static var NEWLINE:Int = 10;
+  inline public static var RETURN:Int = 13;
   inline static var DOUBLE_QUOTE:Int = 34;
   inline static var SINGLE_QUOTE:Int = 39;
   inline static var BACKTICK:Int = 96;
@@ -71,6 +71,7 @@ class Reader {
     case "SPACE": Atom(Char(SPACE));
     case "NEWLINE": Atom(Char(NEWLINE));
     case "TAB": Atom(Char(HTAB));
+    case "RETURN": Atom(Char(RETURN));
     case ch if(ch.length == 1): Atom(Char(raw.charCodeAt(0)));
     default: throw 'Cannot interperet $raw as a character';
     };
