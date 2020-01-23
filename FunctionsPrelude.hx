@@ -25,6 +25,24 @@ class FunctionsPrelude implements Bindings<FnType> {
     }
   }
 
+  static function head(sexpr: Sexpr):EvalResult {
+    return switch (sexpr) {
+    case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
+    case Cons(Cons(hd,_),Atom(Nil)): Ok(hd);
+    default:
+      Err(SyntaxError(sexpr));
+    };
+  }
+
+  static function tail(sexpr: Sexpr):EvalResult {
+    return switch (sexpr) {
+    case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
+    case Cons(Cons(_,tl),Atom(Nil)): Ok(tl);
+    default:
+      Err(SyntaxError(sexpr));
+    };
+  }
+
   public function exists(name:UnicodeString):Bool {
     return get(name) != null;
   }
@@ -33,6 +51,8 @@ class FunctionsPrelude implements Bindings<FnType> {
     return switch (name) {
     case "+": plus;
     case "CONS": cons;
+    case "HEAD" | "CAR" | "FIRST": head;
+    case "TAIL" | "CDR" | "REST" : tail;
     default: null;
     }
   }
