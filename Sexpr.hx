@@ -25,9 +25,20 @@ class SexprExtensions {
     return !isCons(expr);
   }
 
+  public static function isList(expr:Sexpr):Bool {
+    return isCons(expr) || isNil(expr);
+  }
+
   public static function isSymbol(expr:Sexpr):Bool {
     return switch (expr) {
     case Atom(Sym(_)): true;
+    case _: false;
+    };
+  }
+
+  public static function isNumber(expr:Sexpr):Bool {
+    return switch (expr) {
+    case Atom(Z(_)) | Atom(R(_)): true;
     case _: false;
     };
   }
@@ -88,7 +99,8 @@ class SexprExtensions {
         fn(hd);
         exp = tl;
       }
-      default: {}
+      default:
+        throw "fatal error, expression is not a list";
       }
   }
 

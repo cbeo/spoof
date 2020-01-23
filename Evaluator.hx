@@ -216,7 +216,7 @@ class Evaluator {
 
   public function new () {
     globalEnv = new Env(new PairBindings());
-    globalFenv = new Env(new PairBindings());
+    globalFenv = new Env(new FunctionsPrelude());
   }
 
 }
