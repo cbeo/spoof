@@ -26,3 +26,10 @@ enum EvalError {
 }
 
 typedef EvalResult = Result<EvalError,Sexpr>;
+
+interface Bindings<T> {
+  function get(name:UnicodeString):Null<T>;
+  function set(name:UnicodeString, val:T):Void;
+  function exists(name:UnicodeString):Bool;
+}
+

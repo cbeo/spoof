@@ -1,16 +1,13 @@
 package;
 
+
 class Env<T> {
 
   var parent:Env<T>;
-  var bindings:Map<String,T>;
+  var bindings:Bindings<T>; //Map<String,T>;
 
-  public function new (bs:Map<String,T>, ?p:Env<T> = null) {
-    this.bindings = bs;
-    this.parent = p;
-  }
 
-  public function extend(bs:Map<String,T>):Env<T> {
+  public function extend(bs:Bindings<T>):Env<T> {
     return new Env(bs, this);
   }
 
@@ -31,5 +28,11 @@ class Env<T> {
     if (this.parent != null) return parent.update(name, val);
     return None;
   }
+
+  public function new (bs:Bindings<T>, ?p:Env<T> = null) {
+    this.bindings = bs;
+    this.parent = p;
+  }
+
 
 }
