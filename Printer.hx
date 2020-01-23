@@ -54,6 +54,13 @@ class Printer {
       buf.add( printToString(hd) );
       buf.add(")");
     }
+    case Cons(hd, tl) if(tl.isAtom()): {
+        if (!inList) buf.add("(");
+        buf.add( printToString(hd) );
+        buf.add(" . ");
+        buf.add( printToString(tl) );
+        buf.add(")");
+      }
     case Cons(hd,tl): {
       if (!inList) buf.add("(");
       buf.add( printToString(hd) );

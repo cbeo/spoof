@@ -16,6 +16,15 @@ class FunctionsPrelude implements Bindings<FnType> {
     return Ok(Atom(sum));
   }
 
+  static function cons(sexpr: Sexpr):EvalResult {
+    return switch(sexpr) {
+    case Cons(hd, Cons(tl, Atom(Nil))):
+      Ok(Cons(hd,tl));
+    default:
+      Err(SyntaxError(sexpr));
+    }
+  }
+
   public function exists(name:UnicodeString):Bool {
     return get(name) != null;
   }
@@ -23,6 +32,7 @@ class FunctionsPrelude implements Bindings<FnType> {
   public function get(name:UnicodeString):Null<FnType> {
     return switch (name) {
     case "+": plus;
+    case "CONS": cons;
     default: null;
     }
   }

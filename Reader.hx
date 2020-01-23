@@ -112,6 +112,11 @@ class Reader {
     }
   }
 
+  function dropUntil(char:Int, ?inclusive = false) {
+    while(current != char) position++;
+    if (inclusive) position++;
+  }
+
   public function reset(newInput:String) {
     input = newInput;
     position = 0;
@@ -213,6 +218,19 @@ class Reader {
     if (current == RIGHT_PAREN) {
       position++;
       return Ok(Atom(Nil));
+    }
+
+    if (current == PERIOD) {
+      position++;
+      return read()
+        .then(form -> {
+            dropWhitespace();
+            if (current == RIGHT_PAREN) {
+              position++;
+              return Ok(form);
+            }
+            return Err({source:input, position:position, error:"only one term after the dot"});
+          });
     }
 
     return read()
