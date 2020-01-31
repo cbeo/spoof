@@ -16,6 +16,28 @@ class FunctionsPrelude implements Bindings<FnType> {
     return Ok(Atom(sum));
   }
 
+  static function minus(sexpr: Sexpr):EvalResult {
+    if (sexpr.isNil()) return Err(SyntaxError(sexpr));
+    switch (sexpr) {
+    case Cons(Atom(hd),Atom(Nil)) if (PrimOps.isNumber(hd)):
+      return Ok(Atom(PrimOps.negate(hd)));
+
+    case Cons(Atom(hd), rest) if (PrimOps.isNumber(hd)): {
+        var diff = hd;
+        while ( !rest.isNil() ) switch (rest) {
+          case Cons(Atom(num), tl) if (PrimOps.isNumber(num)): {
+              diff = PrimOps.minus(diff, num);
+              rest = tl;
+            }
+          default: return Err(SyntaxError(sexpr));
+          }
+        return Ok(Atom(diff));
+      };
+
+    default: return Err(SyntaxError(sexpr));
+    }
+  }
+
   static function cons(sexpr: Sexpr):EvalResult {
     return switch(sexpr) {
     case Cons(hd, Cons(tl, Atom(Nil))):
@@ -50,6 +72,7 @@ class FunctionsPrelude implements Bindings<FnType> {
   public function get(name:UnicodeString):Null<FnType> {
     return switch (name) {
     case "+": plus;
+    case "-": minus;
     case "CONS": cons;
     case "HEAD" | "CAR" | "FIRST": head;
     case "TAIL" | "CDR" | "REST" : tail;
