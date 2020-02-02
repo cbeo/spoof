@@ -16,14 +16,15 @@ enum Atomic {
 }
 
 enum EvalError {
-  UnboundSymbol(s:UnicodeString);
-  UnboundFunctionSymbol(s:UnicodeString);
   BadFunctionApplication(ll: Sexpr, vals:Sexpr);
-  MalformedLambdaList(ll:Sexpr);
-  MalformedIfForm(form:Sexpr);
   BadFunctionVal(form:Sexpr);
+  MalformedIfForm(form:Sexpr);
+  MalformedLambdaList(ll:Sexpr);
+  PrimOpError(exp:Sexpr,description:UnicodeString);
   SpliceError(s:Sexpr);
   SyntaxError(expr:Sexpr);
+  UnboundFunctionSymbol(s:UnicodeString);
+  UnboundSymbol(s:UnicodeString);
 }
 
 typedef EvalResult = Result<EvalError,Sexpr>;

@@ -11,7 +11,7 @@ class FunctionsPrelude implements Bindings<FnType> {
        form = tail;
        sum = PrimOps.plus(sum, num);
       };
-      default: return Err(SyntaxError(sexpr));
+      default: return Err(PrimOpError(sexpr, "Trying to add something that is not a number."));
       }
     return Ok(Atom(sum));
   }
@@ -29,12 +29,11 @@ class FunctionsPrelude implements Bindings<FnType> {
               diff = PrimOps.minus(diff, num);
               rest = tl;
             }
-          default: return Err(SyntaxError(sexpr));
+          default: return Err(PrimOpError(sexpr, "Trying to subtract something that is not a number."));
           }
         return Ok(Atom(diff));
       };
-
-    default: return Err(SyntaxError(sexpr));
+    default: return Err(PrimOpError(sexpr, "Trying to subtract something that is not a number."));
     }
   }
 
@@ -43,25 +42,25 @@ class FunctionsPrelude implements Bindings<FnType> {
     case Cons(hd, Cons(tl, Atom(Nil))):
       Ok(Cons(hd,tl));
     default:
-      Err(SyntaxError(sexpr));
+      Err(PrimOpError(sexpr, "CONS takes exactly two arguments"));
     }
   }
 
-  static function head(sexpr: Sexpr):EvalResult {
+  static function first(sexpr: Sexpr):EvalResult {
     return switch (sexpr) {
     case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
     case Cons(Cons(hd,_),Atom(Nil)): Ok(hd);
     default:
-      Err(SyntaxError(sexpr));
+      Err(PrimOpError(sexpr, "FIRST takes exactly one argument, either NIL or a CONS value"));
     };
   }
 
-  static function tail(sexpr: Sexpr):EvalResult {
+  static function rest(sexpr: Sexpr):EvalResult {
     return switch (sexpr) {
     case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
     case Cons(Cons(_,tl),Atom(Nil)): Ok(tl);
     default:
-      Err(SyntaxError(sexpr));
+      Err(PrimOpError(sexpr, "REST takes exactly one argument, either a NIL or a CONS value"));
     };
   }
 
@@ -74,8 +73,8 @@ class FunctionsPrelude implements Bindings<FnType> {
     case "+": plus;
     case "-": minus;
     case "CONS": cons;
-    case "HEAD" | "CAR" | "FIRST": head;
-    case "TAIL" | "CDR" | "REST" : tail;
+    case "CAR" | "FIRST": first;
+    case "CDR" | "REST" : rest;
     default: null;
     }
   }

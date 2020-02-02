@@ -30,6 +30,8 @@ class Reader {
   inline static var AT_SIGN:Int = 64;
   inline static var COLON:Int = 58;
   inline static var SEMICOLON:Int = 59;
+  inline static var RIGHT_CURLY = 123;
+  inline static var LEFT_CURLY = 125;
   inline static var OCTOTHORPE:Int = 0x23;
 
   inline static var SYMBOL_NAME_CHARS :UnicodeString = "+=-*&^%$!@~?/<>";
