@@ -25,6 +25,7 @@ class Reader {
   inline static var BACKTICK:Int = 96;
   inline static var COMMA:Int = 44;
   inline static var BACKSLASH:Int = 92; // for escapes in strings.
+  inline static var FORWARDSLASH:Int = 47;
   inline static var PERIOD:Int = 46;
   inline static var AT_SIGN:Int = 64;
   inline static var COLON:Int = 58;
@@ -75,6 +76,10 @@ class Reader {
     case ch if(ch.length == 1): Atom(Char(raw.charCodeAt(0)));
     default: throw 'Cannot interperet $raw as a character';
     };
+  }
+
+  static function readRegularExpression(raw:UnicodeString): Sexpr {
+    return Atom(Regex(new EReg(raw,""), raw));
   }
 
   /// INSTANCE VARIABLES
@@ -162,10 +167,10 @@ class Reader {
       
       case StopCharacterMacro(stopChar, macroFn): {
         position++; // consume macro character
-        var raw = rawRead(c -> c == stopChar);
+        var raw = rawRead(c -> c == stopChar, c -> c == BACKSLASH);
         position++; //consume the stop character
-        Ok(macroFn(rawRead()));
-      };
+        Ok(macroFn(raw));
+      }
       };
     } catch (e:Dynamic) {
       return Err({source:input, position:position, error: 'While processing a reader macro: $e'});
@@ -302,13 +307,17 @@ class Reader {
   // consumes input until stop charcter is encountered, then returns a string,
   // leaving the stop character on the input - or, if eof was encountered, then
   // input is eof.
-  function rawRead(?stop:Int->Bool):UnicodeString {
+  function rawRead(?stop:Int->Bool, ?escape:Int->Bool):UnicodeString {
     if (stop == null)
       stop = (c) -> isClosingBracket(c) || isWhitespace(c);
 
+    var escapeOn = if (escape == null) false else escape(current);
+
     var p = position;
-    while (!stop(current) && !eof)
+    while (( !stop(current) || escapeOn) && !eof) {
+      escapeOn = if (escape == null) false else (!escapeOn && escape( current ));
       position++;
+    }
 
     return input.substring(p,position);
   }
@@ -316,7 +325,9 @@ class Reader {
   public function new(source: UnicodeString) {
     input = source;
     position = 0;
-    readerMacros = [ BACKSLASH =>  SingleFormMacro(interperetAsChar)];
+    readerMacros = [ BACKSLASH =>  SingleFormMacro(interperetAsChar),
+                     FORWARDSLASH => StopCharacterMacro( FORWARDSLASH, readRegularExpression)
+                     ];
   }
 
 

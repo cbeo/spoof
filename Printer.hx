@@ -12,6 +12,11 @@ class Printer {
     case Atom(R(f)): buf.add(Std.string(f));
     case Atom(Str(s)): buf.add('"$s"');
     case Atom(Sym(s)): buf.add(s);
+    case Atom(Regex(_,s)): {
+      buf.add("#/");
+      buf.add(s);
+      buf.add("/");
+    }
     case Atom(Kwd(s)): {
       buf.add(":");
       buf.add(s);
