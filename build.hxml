@@ -1,0 +1,6 @@
+-cp src
+-hl build/test/test.hl
+-main Test
+
+
+
