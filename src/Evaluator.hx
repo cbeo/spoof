@@ -154,9 +154,9 @@ class Evaluator {
                         ): EvalResult {
 
     if (!LambdaList.isValidExpression(lambdaListExpr))
-      return Err(MalformedLambdaList(lambdaListExpr));
+      return Err(MalformedLambdaList( lambdaListExpr ));
 
-    var lambdaList = new LambdaList(lambdaListExpr);
+    var lambdaList = new LambdaList( lambdaListExpr );
 
     var f =
       function (vals:Sexpr)
@@ -200,12 +200,12 @@ class Evaluator {
 
 
   function evalList(args: Sexpr, env: Env<Sexpr>, fenv: Env<FnType>): EvalResult {
-    var acc = Atom(Nil);
+    var acc = Atom( Nil );
     while ( !args.isNil() ) switch ( args ) {
-      case Cons(hd,tl): {
+      case Cons( hd, tl ): {
         args = tl;
         switch ( eval(hd, env, fenv) ) {
-        case Ok(val): acc = Cons(val, acc);
+        case Ok( val ): acc = Cons(val, acc);
         case errVal: return errVal;
         }
       }

@@ -12,6 +12,8 @@ class Repl {
 
         var input:String = "";
 
+        stderr.writeString("> ");
+
         while (true) {
 
             try {
