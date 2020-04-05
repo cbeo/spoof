@@ -33,6 +33,7 @@ class Reader {
     inline static var RIGHT_CURLY = 123;
     inline static var LEFT_CURLY = 125;
     inline static var OCTOTHORPE:Int = 0x23;
+    inline static var MINUS:Int = 45;
 
     inline static var SYMBOL_NAME_CHARS :UnicodeString = "+=-*&^%$!@~?/<>";
 
@@ -101,6 +102,11 @@ class Reader {
         return input.charCodeAt(position);
     }
 
+    var next(get,never):Null<Int>;
+    function get_next():Null<Int> {
+        return if (position + 1 < input.length ) input.charCodeAt(position + 1) else null;
+    }
+
     var endOfTerm(get,never):Bool;
     function get_endOfTerm():Bool {
         return eof || isWhitespace(current) || isClosingBracket(current);
@@ -149,6 +155,10 @@ class Reader {
             case BACKTICK: readQuasiquote();
             case COMMA: readComma();
             case OCTOTHORPE: readReaderMacro();
+            case MINUS if (isNumericChar( next )): {
+                position++;
+                readNumber().map(num -> num.negate());
+            };
             case num if (isNumericChar(num)): readNumber();
             case symb if (isLegalSymbolChar(symb)): readSymbol();
             default: Err({source:input, position:position, error:"read failed"});

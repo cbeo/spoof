@@ -43,6 +43,14 @@ class SexprExtensions {
     };
   }
 
+    public static function negate(expr:Sexpr):Sexpr {
+        return switch (expr) {
+            case Atom(Z(n)): Atom(Z(-1 * n));
+            case Atom(R(n)): Atom(R(-1 * n));
+            default: throw "Fatal: Cannot negate non numeric value";
+        };
+    }
+
   // intended to get the name of symbols
   public static function symbolName(expr:Sexpr):UnicodeString {
     return switch (expr) {
