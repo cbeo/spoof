@@ -6,8 +6,8 @@ typedef ReadError = {source: UnicodeString, position: Int, error: String};
 typedef ReadResult = Result<ReadError, Sexpr>;
 
 enum ReaderMacro {
-  SingleFormMacro(fn:UnicodeString->Sexpr);
-  StopCharacterMacro(stopChar: Int, fn:UnicodeString->Sexpr);
+    SingleFormMacro(fn:UnicodeString->Sexpr);
+    StopCharacterMacro(stopChar: Int, fn:UnicodeString->Sexpr);
 }
 
 class Reader {

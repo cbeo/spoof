@@ -41,6 +41,7 @@ class Printer {
       }
     };
     case Atom(Fn(f)): buf.add(Std.string(f));
+    case Atom(Macro(f)): buf.add(Std.string(f));
     case Atom(Ob(ob)): buf.add(Std.string(ob));
     case Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted,Atom(Nil))): {
       buf.add("`");
