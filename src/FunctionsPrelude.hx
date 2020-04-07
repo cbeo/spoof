@@ -1,6 +1,6 @@
 package;
 
-class FunctionsPrelude implements Bindings<FnType> {
+class FunctionsPrelude {
     // can assume that the sexpr is going to be a list.
 
     static function plus(sexpr: Sexpr):EvalResult {
