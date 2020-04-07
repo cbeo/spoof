@@ -71,38 +71,60 @@ class Evaluator {
     }
     
     function evalQuasiQuoted(sexpr:Sexpr, env:Env<Sexpr>, fenv:Env<FnType>): EvalResult {
-        var acc = Atom(Nil);
-        
-        while (!sexpr.isNil()) {
-            switch (sexpr) {
-            case Cons(Cons(Atom(Sym("#UNQUOTE")), Cons(expr, Atom(Nil))), rest): {
-                sexpr = rest;
-                switch ( eval(expr, env, fenv) ) {
-                case Ok(val):
-                    acc = Cons(val, acc);
-                case anError:
+        switch (sexpr)
+        {
+            case Cons(Cons(Atom(Sym("#UNQUOTE")), Cons(expr, Atom(Nil))), rest):
+            {
+                switch ( eval(expr, env, fenv) )
+                {
+                    case Ok(val): switch( evalQuasiQuoted( rest, env, fenv ))
+                    {
+                        case Ok( rest2 ):
+                        return Ok( Cons(val, rest2) );
+
+                        case anError:
+                        return anError;
+                    };
+
+                    case anError:
                     return anError;
                 }
             };
-            case Cons(Cons(Atom(Sym("#SPLICE")), Cons(expr, Atom(Nil))), rest): {
-                sexpr = rest;
-                var toSplice = eval(expr, env, fenv);
-                switch ( toSplice ) {
-                case Ok(Atom(val)):
+
+            case Cons(Cons(Atom(Sym("#SPLICE")), Cons(expr, Atom(Nil))), rest):
+            {
+                switch ( eval(expr, env, fenv) )
+                {
+                    case Ok(Atom(val)):
                     return Err(SpliceError(Atom(val)));
-                case Ok(vals): 
-                    vals.foreach(hd -> acc = Cons(hd,acc));
-                case anError: return anError;
+
+                    case Ok(vals): switch ( evalQuasiQuoted( rest, env, fenv ))
+                    {
+                        case Ok(restVal): return Ok( vals.append( restVal ));
+                        case anError: return anError;
+                    };
+
+                    case anError:
+                    return anError;
                 }
             };
-            case Cons(first,rest): {
-                sexpr = rest;
-                acc = Cons(first,acc);
+            
+            case Cons(first,rest):
+            {
+                switch ( evalQuasiQuoted( first, env, fenv ))
+                {
+                    case Ok(firstVal): switch (evalQuasiQuoted( rest, env, fenv))
+                    {
+                        case Ok(restVal): return Ok(Cons(firstVal, restVal));
+                        case anError: return anError;
+                    }
+                    case anError:
+                    return anError;
+                }
             };
-            default: {};
-            }
-        } // end while
-        return Ok( acc.reverse() );
+
+            case Atom(a): return Ok(Atom(a));
+        }
     }
         
     function evalSymbol(name:UnicodeString, env):EvalResult {
@@ -197,12 +219,17 @@ class Evaluator {
         // f is either an Atom(Fn(_)), a Cons(Atom(Sym("LAMBDA")), _), or an Atom(Sym("name"))
         return switch(f) {
             case Atom(Fn(_)): Ok(f);
+            case Atom(Macro(_)): Ok(f);
 
             case Atom(Sym(fname)):
             switch (fenv.lookup(fname)) {
               case Some(fnVal): Ok(Atom(Fn(fnVal)));
               case None: Err(UnboundFunctionSymbol(fname));
             };
+
+            case Cons(Atom(Sym("MACRO")), Cons(lambdaList, body)):
+            makeMacro(lambdaList, body, env, fenv);
+
             case Cons(Atom(Sym("LAMBDA")), Cons(lambdaList, body)):
             makeFunction(lambdaList, body, env, fenv);
 

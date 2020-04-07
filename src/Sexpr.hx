@@ -76,6 +76,13 @@ class SexprExtensions {
     }
   }
 
+    public static function append(e1: Sexpr, e2:Sexpr): Sexpr {
+        var acc = e2;
+        var rev = e1.reverse();
+        rev.foreach( t -> acc = Cons(t, acc));
+        return acc;
+    }
+
   public static function reverse(exp:Sexpr):Sexpr {
     var acc = Atom(Nil);
 
