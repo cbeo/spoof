@@ -1,6 +1,13 @@
 
 typedef FnType = Sexpr -> EvalResult;
 
+typedef TaggedFunctionValue = {
+    type: String, // function or macro
+    value: FnType
+};
+
+
+
 enum Atomic {
     Nil;                // nil
     True;               // the true value
@@ -29,6 +36,7 @@ enum EvalError {
 }
 
 typedef EvalResult = Result<EvalError,Sexpr>;
+
 
 typedef Bindings<T> = {
   function get(name:UnicodeString):Null<T>;

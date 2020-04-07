@@ -19,12 +19,13 @@ import Sexpr.*;
 
 */
 
+
 class Evaluator {
 
     var globalEnv: Env<Sexpr>;
-    var globalFenv: Env<FnType>;
+    var globalFenv: Env<TaggedFunctionValue>;
 
-    public function eval(sexpr:Sexpr, ?env:Env<Sexpr>, ?fenv:Env<FnType>):EvalResult {
+    public function eval(sexpr:Sexpr, ?env:Env<Sexpr>, ?fenv:Env<TaggedFunctionValue>):EvalResult {
         env = if (env == null) globalEnv else env;
         fenv = if (fenv == null) globalFenv else fenv;
 
@@ -72,7 +73,17 @@ class Evaluator {
             makeFunction(lambdaList, body, env, fenv)
                 .then(fn -> switch(fn) {
                     case Atom(Fn(fn)): {
-                        globalFenv.update(variable, fn, true);
+                        globalFenv.update(variable, {type:"function", value:fn}, true);
+                        return Ok(Atom(Sym(variable)));
+                    }
+                    default: throw "something has gone horribly wrong";
+                });
+
+            case Cons(Atom(Sym("DEFMACRO")), Cons(Atom(Sym(variable)), Cons(lambdaList, body))):
+            makeMacro(lambdaList, body, env, fenv)
+                .then (mac -> switch(mac) {
+                    case Atom(Macro(mac)): {
+                        globalFenv.update(variable, {type:"macro", value:mac}, true);
                         return Ok(Atom(Sym(variable)));
                     }
                     default: throw "something has gone horribly wrong";
@@ -86,7 +97,7 @@ class Evaluator {
         };
     }
     
-    function evalQuasiQuoted(sexpr:Sexpr, env:Env<Sexpr>, fenv:Env<FnType>): EvalResult {
+    function evalQuasiQuoted(sexpr:Sexpr, env:Env<Sexpr>, fenv:Env<TaggedFunctionValue>): EvalResult {
         switch (sexpr)
         {
             case Cons(Cons(Atom(Sym("#UNQUOTE")), Cons(expr, Atom(Nil))), rest):
@@ -189,7 +200,7 @@ class Evaluator {
     function makeMacro(lambdaListExpr: Sexpr,
                        body: Sexpr,
                        env:Env<Sexpr>,
-                       fenv:Env<FnType>
+                       fenv:Env<TaggedFunctionValue>
                       ): EvalResult
     {
         if (!LambdaList.isValidExpression( lambdaListExpr ))
@@ -211,7 +222,7 @@ class Evaluator {
     function makeFunction(lambdaListExpr: Sexpr,
                           body: Sexpr,
                           env:Env<Sexpr>,
-                          fenv:Env<FnType>
+                          fenv:Env<TaggedFunctionValue>
                          ): EvalResult
     {
         
@@ -231,7 +242,7 @@ class Evaluator {
         return Ok(Atom(Fn(f)));
     }
     
-    function evalFunctionLookup(f:Sexpr, env:Env<Sexpr>, fenv:Env<FnType>):EvalResult {
+    function evalFunctionLookup(f:Sexpr, env:Env<Sexpr>, fenv:Env<TaggedFunctionValue>):EvalResult {
         // f is either an Atom(Fn(_)), a Cons(Atom(Sym("LAMBDA")), _), or an Atom(Sym("name"))
         return switch(f) {
             case Atom(Fn(_)): Ok(f);
@@ -239,8 +250,9 @@ class Evaluator {
 
             case Atom(Sym(fname)):
             switch (fenv.lookup(fname)) {
-              case Some(fnVal): Ok(Atom(Fn(fnVal)));
-              case None: Err(UnboundFunctionSymbol(fname));
+            case Some({type:"function", value:fnVal}): Ok(Atom(Fn(fnVal)));
+            case Some({type:"macro", value:fnVal}): Ok(Atom(Macro(fnVal)));
+            default: Err(UnboundFunctionSymbol(fname));
             };
 
             case Cons(Atom(Sym("MACRO")), Cons(lambdaList, body)):
@@ -257,7 +269,7 @@ class Evaluator {
     function functionApplication(fexpr:Sexpr,
                                  args:Sexpr,
                                  env:Env<Sexpr>,
-                                 fenv:Env<FnType>
+                                 fenv:Env<TaggedFunctionValue>
                                 ): EvalResult
     {
         return evalFunctionLookup(fexpr, env, fenv)
@@ -268,7 +280,7 @@ class Evaluator {
             });
     }
         
-    function evalList(args: Sexpr, env: Env<Sexpr>, fenv: Env<FnType>): EvalResult {
+    function evalList(args: Sexpr, env: Env<Sexpr>, fenv: Env<TaggedFunctionValue>): EvalResult {
         var acc = Atom( Nil );
         while ( !args.isNil() ) switch ( args ) {
             case Cons( hd, tl ): {

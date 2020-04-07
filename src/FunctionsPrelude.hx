@@ -86,19 +86,19 @@ class FunctionsPrelude {
         return get(name) != null;
     }
     
-    public function get(name:UnicodeString):Null<FnType> {
+    public function get(name:UnicodeString):Null<TaggedFunctionValue> {
         return switch (name) {
-            case "+": plus;
-            case "-": minus;
-            case "*": mult;
-            case "CONS": cons;
-            case "CAR" | "FIRST": first;
-            case "CDR" | "REST" : rest;
+            case "+": {type:"function", value:plus};
+            case "-": {type:"function", value:minus};
+            case "*": {type:"function", value:mult};
+            case "CONS": {type:"function", value:cons};
+            case "CAR" | "FIRST": {type:"function", value:first};
+            case "CDR" | "REST" : {type:"function", value:rest};
             default: null;
         }
     }
     
-    public function set(name:UnicodeString,fn:FnType) {
+    public function set(name:UnicodeString,fn:TaggedFunctionValue) {
         throw "cannot overwrite prelude function";
     }
     
