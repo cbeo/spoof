@@ -62,6 +62,12 @@ class Evaluator {
             case Cons(Atom(Sym("FUNCTION")), Cons( fn, Atom(Nil))):
             evalFunctionLookup(fn, env, fenv);
             
+            case Cons(Atom(Sym("DEFVAR")), Cons(Atom(Sym(variable)), Cons(expr, _))):
+            eval(expr, env, fenv).then( value -> {
+                globalEnv.update(variable, value, true);
+                return Ok(value);
+            });
+
             case Cons(fexpr, args):
             functionApplication(fexpr, args, env, fenv);
             
@@ -268,7 +274,7 @@ class Evaluator {
     }
     
     public function new () {
-        globalEnv = new Env(new PairBindings());
+        globalEnv = new Env(new MapBindings());
         globalFenv = new Env(new FunctionsPrelude());
     }
     

@@ -2,7 +2,7 @@ package;
 
 typedef KVPair<T> = {name:UnicodeString, value: T};
 
-class PairBindings<T> implements Bindings<T> {
+class PairBindings<T> {
   var pairs:Array<KVPair<T>>;
 
   function getPair(name:UnicodeString):Null<KVPair<T>> {
