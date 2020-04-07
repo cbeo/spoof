@@ -65,8 +65,18 @@ class Evaluator {
             case Cons(Atom(Sym("DEFVAR")), Cons(Atom(Sym(variable)), Cons(expr, _))):
             eval(expr, env, fenv).then( value -> {
                 globalEnv.update(variable, value, true);
-                return Ok(value);
+                return Ok(Atom(Sym(variable)));
             });
+
+            case Cons(Atom(Sym("DEFUN")), Cons(Atom(Sym(variable)), Cons(lambdaList, body))):
+            makeFunction(lambdaList, body, env, fenv)
+                .then(fn -> switch(fn) {
+                    case Atom(Fn(fn)): {
+                        globalFenv.update(variable, fn, true);
+                        return Ok(Atom(Sym(variable)));
+                    }
+                    default: throw "something has gone horribly wrong";
+                });
 
             case Cons(fexpr, args):
             functionApplication(fexpr, args, env, fenv);
@@ -275,7 +285,7 @@ class Evaluator {
     
     public function new () {
         globalEnv = new Env(new MapBindings());
-        globalFenv = new Env(new FunctionsPrelude());
+        globalFenv = new Env(new FunctionsPrelude()).extend(new MapBindings());
     }
     
 }
