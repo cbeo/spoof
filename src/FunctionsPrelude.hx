@@ -82,6 +82,16 @@ class FunctionsPrelude {
         };
     }
     
+    static function equal(sexpr:Sexpr):EvalResult {
+        return switch (sexpr) {
+            case Cons(n1,Cons(n2,Nil)):
+            if (n1.equal(n2)) Ok(True) else Ok(Nil);
+
+            default:
+            Err(PrimOpError(sexpr, 'EQ takes exactly 2 arguments'));
+        };
+    }
+
     public function exists(name:UnicodeString):Bool {
         return get(name) != null;
     }
@@ -91,6 +101,7 @@ class FunctionsPrelude {
             case "+": {type:"function", value:plus};
             case "-": {type:"function", value:minus};
             case "*": {type:"function", value:mult};
+            case "EQUAL": {type:"function", value:equal};
             case "CONS": {type:"function", value:cons};
             case "CAR" | "FIRST": {type:"function", value:first};
             case "CDR" | "REST" : {type:"function", value:rest};

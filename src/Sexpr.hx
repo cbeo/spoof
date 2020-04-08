@@ -56,6 +56,10 @@ class SexprExtensions {
         };
     }
 
+    public static function equal(lhs:Sexpr,rhs:Sexpr):Bool {
+        return Type.enumEq(lhs,rhs);
+    }
+
     // intended to get the name of symbols
     public static function symbolName(expr:Sexpr):UnicodeString {
         return switch (expr) {
