@@ -134,4 +134,21 @@ class SexprExtensions {
         return sexpr;
     }
 
+    public static function unwrap(exp:Sexpr,nilIsFalse = false):Dynamic {
+        return switch(exp) {
+            case Nil if (nilIsFalse): false;
+            case True: true;
+            case Z(i):i;
+            case R(f):f;
+            case Str(s):s;
+            case Sym(s):s;
+            case Kwd(s):s;
+            case Regex(r,_):r;
+            case Char(c):c;
+            case Ob(ob): ob;
+            default: throw 'Fatal Error: Cannot unwrap $exp';
+        };
+    }
+
+
 }

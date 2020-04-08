@@ -105,6 +105,27 @@ class FunctionsPrelude {
             case "CONS": {type:"function", value:cons};
             case "CAR" | "FIRST": {type:"function", value:first};
             case "CDR" | "REST" : {type:"function", value:rest};
+            // Math FFI
+            case "ABS":  FFI.FFI_1(Math.abs, R);
+            case "ACOS": FFI.FFI_1(Math.acos, R);
+            case "ASIN": FFI.FFI_1(Math.asin, R);
+            case "ATAN": FFI.FFI_1(Math.atan, R);
+            case "CEILING": FFI.FFI_1(Math.ceil, Z);
+            case "COS": FFI.FFI_1(Math.cos, R);
+            case "EXP": FFI.FFI_1(Math.exp, R);
+            case "FLOOR": FFI.FFI_1(Math.floor, Z);
+            case "LOG": FFI.FFI_1(Math.log, R);
+            case "MAX": FFI.FFI_2(Math.max, R);
+            case "MIN": FFI.FFI_2(Math.min, R);
+            case "POW": FFI.FFI_2(Math.pow, R);
+            case "RANDOM": FFI.FFI_0(Math.random, R);
+            case "ROUND": FFI.FFI_1(Math.round, Z);
+            case "SIN": FFI.FFI_1(Math.sin, R);
+            case "SQRT": FFI.FFI_1(Math.sqrt, R);
+            case "TAN": FFI.FFI_1(Math.tan, R);
+            case "NANP": FFI.FFI_1(Math.isNaN, R);
+            case "ATAN2": FFI.FFI_2(Math.atan2, R);
+
             default: null;
         }
     }
