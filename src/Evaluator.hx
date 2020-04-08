@@ -89,6 +89,10 @@ class Evaluator {
                     default: throw "something has gone horribly wrong";
                 });
 
+            case Cons(Sym("FUNCALL"), Cons(fexpr, args)):
+            eval(fexpr, env, fenv)
+                .then(fn -> functionApplication(fn, args, env, fenv));
+
             case Cons(fexpr, args):
             functionApplication(fexpr, args, env, fenv);
             
