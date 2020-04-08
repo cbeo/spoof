@@ -137,6 +137,7 @@ class SexprExtensions {
     public static function unwrap(exp:Sexpr,nilIsFalse = false):Dynamic {
         return switch(exp) {
             case Nil if (nilIsFalse): false;
+            case Nil: null;
             case True: true;
             case Z(i):i;
             case R(f):f;
@@ -149,6 +150,4 @@ class SexprExtensions {
             default: throw 'Fatal Error: Cannot unwrap $exp';
         };
     }
-
-
 }

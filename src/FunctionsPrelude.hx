@@ -92,10 +92,36 @@ class FunctionsPrelude {
         };
     }
 
+    static function wrapAs(s:String,t:Dynamic):Sexpr {
+        return switch (s) {
+            case "STRING": Str(t);
+            case "SYMBOL": Sym(t);
+            case "REAL": R(t);
+            case "INT": Z(t);
+            case "BOOL": if (t == false || t == null) Nil else True;
+            case "CHAR": Char(t);
+            default: Ob(t);
+        };
+    }
+
+    static function callForeignMethod(sexpr:Sexpr):EvalResult {
+        return switch (sexpr) {
+            case Cons(Str(methodName), Cons(Sym(returnType), Cons(object, args))): {
+                var unwrapped = object.unwrap();
+                var fn = Reflect.field( unwrapped, methodName);
+                var realArgs:Array<Dynamic> = [];
+                args.foreach((a) -> realArgs.push(a.unwrap()));
+                Ok(wrapAs( returnType, Reflect.callMethod(null, fn, realArgs)));
+            };
+            default: Err(PrimOpError(sexpr, "FFI Error"));
+        };
+    }
+
     public function exists(name:UnicodeString):Bool {
         return get(name) != null;
     }
-    
+
+
     public function get(name:UnicodeString):Null<TaggedFunctionValue> {
         return switch (name) {
             case "+": {type:"function", value:plus};
@@ -105,6 +131,10 @@ class FunctionsPrelude {
             case "CONS": {type:"function", value:cons};
             case "CAR" | "FIRST": {type:"function", value:first};
             case "CDR" | "REST" : {type:"function", value:rest};
+
+            // call foreign method:
+            case "CALL-FM": {type:"function", value:callForeignMethod};
+
             // Math FFI
             case "ABS":  FFI.FFI_1(Math.abs, R);
             case "ACOS": FFI.FFI_1(Math.acos, R);
@@ -125,6 +155,27 @@ class FunctionsPrelude {
             case "TAN": FFI.FFI_1(Math.tan, R);
             case "NANP": FFI.FFI_1(Math.isNaN, R);
             case "ATAN2": FFI.FFI_2(Math.atan2, R);
+
+            // String FFI
+            case "STRING-UPCASE": FFI.FMI_0("toUpperCase", Str);
+            case "STRING-DOWNCASE": FFI.FMI_0("toLowerCase", Str);
+
+            // Date FFI
+            case "DATE-NOW": FFI.FFI_0(Date.now, Ob);
+            case "DATE-DOM": FFI.FMI_0("getDate", Z); // day of month
+            case "DATE-DOW": FFI.FMI_0("getDay", Z); // day of week
+            case "DATE-YEAR": FFI.FMI_0("getFullYear", Z);
+            case "DATE-HOURS": FFI.FMI_0("getHours", Z);
+            case "DATE-MINUTES": FFI.FMI_0("getMinutes", Z);
+            case "DATE-MONTH": FFI.FMI_0("getMonth", Z);
+            case "DATE-SECONDS": FFI.FMI_0("getSeconds", Z);
+            case "DATE-TIME": FFI.FMI_0("getTime", R);
+
+            // ANY
+            case "TO-STRING": FFI.FMI_0("toString", Str);
+
+            // HTTP
+            case "HTTP-GET-URL": FFI.FFI_1(haxe.Http.requestUrl, Str);
 
             default: null;
         }
