@@ -94,7 +94,7 @@ class Evaluator {
                 .then(fn -> functionApplication(fn, args, env, fenv));
 
             case Cons(Sym("EVAL"), Cons(expr, Nil)):
-            eval(expr, env, fenv);
+            eval(expr, env, fenv).then( res -> eval(res, env, fenv));
 
             case Cons(fexpr, args):
             functionApplication(fexpr, args, env, fenv);
