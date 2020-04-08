@@ -117,6 +117,28 @@ class FunctionsPrelude {
         };
     }
 
+    static function foreignField(sexpr:Sexpr):EvalResult {
+        return switch (sexpr) {
+            case Cons(Str(fieldName), Cons(Sym(type), Cons(object, Nil))): {
+                var unwrapped = object.unwrap();
+                Ok(wrapAs( type, Reflect.field( unwrapped, fieldName)));
+            };
+            default: Err(PrimOpError(sexpr, "FFI Error"));
+        };            
+    }
+
+    static function foreignProperty(sexpr:Sexpr):EvalResult {
+        return switch (sexpr) {
+            case Cons(Str(fieldName), Cons(Sym(type), Cons(object, Nil))): {
+                var unwrapped = object.unwrap();
+                Ok(wrapAs( type, Reflect.getProperty( unwrapped, fieldName)));
+            };
+            default: Err(PrimOpError(sexpr, "FFI Error"));
+        };            
+
+
+    }
+    
     public function exists(name:UnicodeString):Bool {
         return get(name) != null;
     }
@@ -133,7 +155,9 @@ class FunctionsPrelude {
             case "CDR" | "REST" : {type:"function", value:rest};
 
             // call foreign method:
-            case "CALL-FM": {type:"function", value:callForeignMethod};
+            case "CALL-FOREIGN-METHOD": {type:"function", value:callForeignMethod};
+            case "FOREIGN-FIELD": {type: "function", value:foreignField};
+            case "FOREIGN-PROPERTY": {type: "function", value:foreignProperty};
 
             // Math FFI
             case "ABS":  FFI.FFI_1(Math.abs, R);
