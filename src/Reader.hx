@@ -71,18 +71,18 @@ class Reader {
 
     static function interperetAsChar(raw:UnicodeString): Sexpr {
         return switch (raw.toUpperCase()) {
-            case "": Atom(Char(0)); // the null char.
-            case "SPACE": Atom(Char(SPACE));
-            case "NEWLINE": Atom(Char(NEWLINE));
-            case "TAB": Atom(Char(HTAB));
-            case "RETURN": Atom(Char(RETURN));
-            case ch if(ch.length == 1): Atom(Char(raw.charCodeAt(0)));
+            case "": Char(0); // the null char.
+            case "SPACE": Char(SPACE);
+            case "NEWLINE": Char(NEWLINE);
+            case "TAB": Char(HTAB);
+            case "RETURN": Char(RETURN);
+            case ch if(ch.length == 1): Char(raw.charCodeAt(0));
             default: throw 'Cannot interperet $raw as a character';
         };
     }
 
     static function readRegularExpression(raw:UnicodeString): Sexpr {
-        return Atom(Regex(new EReg(raw,""), raw));
+        return Regex(new EReg(raw,""), raw);
     }
 
     /// INSTANCE VARIABLES
@@ -191,12 +191,12 @@ class Reader {
 
     function readKeyword(): ReadResult {
         position++; // consume the colon
-        return readSymbol().map(symb -> Atom(Kwd(symb.symbolName())));
+        return readSymbol().map(symb -> Kwd(symb.symbolName()));
     }
 
     function readQuoted(): ReadResult {
         position++; // consume the quote
-        return read().then(quoted -> Ok(Cons(Atom(Sym("QUOTE")), Cons(quoted, Atom(Nil)))));
+        return read().then(quoted -> Ok(Cons(Sym("QUOTE"), Cons(quoted, Nil))));
     }
 
     function readQuasiquote(): ReadResult {
@@ -204,23 +204,23 @@ class Reader {
         quasiquoteNesting++;  // increment quasiquote count
         return read()
             .onOk(ignore -> quasiquoteNesting--)
-            .then(quoted -> Ok(Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted, Atom(Nil)))));
+            .then(quoted -> Ok(Cons(Sym("#QUASIQUOTE"), Cons(quoted, Nil))));
     }
 
     function readComma(): ReadResult {
         position++;
         if (quasiquoteNesting > 0) {
             quasiquoteNesting--;     // denest by one level for one expression
-            var unquoteSymbol = Atom(Sym("#UNQUOTE"));
+            var unquoteSymbol = Sym("#UNQUOTE");
 
             if (current == AT_SIGN) {
-                unquoteSymbol = Atom(Sym("#SPLICE"));
+                unquoteSymbol = Sym("#SPLICE");
                 position++;
             }
 
             return read()
                 .onOk(ignore -> quasiquoteNesting++) // restore quasiquoteNesting
-                .then(expr -> Ok(Cons(unquoteSymbol, Cons(expr, Atom(Nil)))));
+                .then(expr -> Ok(Cons(unquoteSymbol, Cons(expr, Nil))));
         } else {
             return Err({source:input,
                         position:position,
@@ -234,7 +234,7 @@ class Reader {
 
         if (current == RIGHT_PAREN) {
             position++;
-            return Ok(Atom(Nil));
+            return Ok(Nil);
         }
 
         if (current == PERIOD) {
@@ -264,7 +264,7 @@ class Reader {
         }
         var str:UnicodeString = input.substring(startPos,position);
         position++; // consume the closing " symbol
-        return Ok(Atom(Str(str)));
+        return Ok(Str(str));
     }
 
     function readNumber():ReadResult {
@@ -289,8 +289,8 @@ class Reader {
             // if everythign checks out, stringify our buffer and parse.
             var str = input.substring(startPos, position);
             
-            return if (isFloat) Ok(Atom(R(Std.parseFloat(str))))
-            else Ok(Atom(Z(Std.parseInt(str))));
+            return if (isFloat) Ok(R(Std.parseFloat(str)))
+            else Ok(Z(Std.parseInt(str)));
 
         } else {
             // otherwise, return an error
@@ -310,7 +310,7 @@ class Reader {
 
         if ( endOfTerm ) {
             var symb = (input.substring(startPos, position) : String).toUpperCase();
-            return Ok(Atom(Sym(symb)));
+            return Ok(Sym(symb));
         } else {
             return Err({source:input, position:position, error: "malformed symbol"});
         }

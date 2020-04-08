@@ -6,22 +6,22 @@ class Printer {
     var buf = new StringBuf();
 
     switch (s) {
-    case Atom(Nil): buf.add("NIL");
-    case Atom(True): buf.add("TRUE");
-    case Atom(Z(i)): buf.add(Std.string(i));
-    case Atom(R(f)): buf.add(Std.string(f));
-    case Atom(Str(s)): buf.add('"$s"');
-    case Atom(Sym(s)): buf.add(s);
-    case Atom(Regex(_,s)): {
+    case Nil: buf.add("NIL");
+    case True: buf.add("TRUE");
+    case Z(i): buf.add(Std.string(i));
+    case R(f): buf.add(Std.string(f));
+    case Str(s): buf.add('"$s"');
+    case Sym(s): buf.add(s);
+    case Regex(_,s): {
       buf.add("#/");
       buf.add(s);
       buf.add("/");
     }
-    case Atom(Kwd(s)): {
+    case Kwd(s): {
       buf.add(":");
       buf.add(s);
     }
-    case Atom(Char(c)): {
+    case Char(c): {
       buf.add("#\\");
       switch (c) {
       case Reader.NEWLINE:
@@ -40,22 +40,22 @@ class Printer {
         buf.addChar(c);
       }
     };
-    case Atom(Fn(f)): buf.add(Std.string(f));
-    case Atom(Macro(f)): buf.add(Std.string(f));
-    case Atom(Ob(ob)): buf.add(Std.string(ob));
-    case Cons(Atom(Sym("#QUASIQUOTE")), Cons(quoted,Atom(Nil))): {
+    case Fn(f): buf.add(Std.string(f));
+    case Macro(f): buf.add(Std.string(f));
+    case Ob(ob): buf.add(Std.string(ob));
+    case Cons(Sym("#QUASIQUOTE"), Cons(quoted,Nil)): {
       buf.add("`");
       buf.add( printToString( quoted ));
     }
-    case Cons(Atom(Sym("#UNQUOTE")), Cons(unquoted, Atom(Nil))): {
+    case Cons(Sym("#UNQUOTE"), Cons(unquoted, Nil)): {
       buf.add(",");
       buf.add( printToString( unquoted ));
     }
-    case Cons(Atom(Sym("#SPLICE")), Cons(spliced, Atom(Nil))): {
+    case Cons(Sym("#SPLICE"), Cons(spliced, Nil)): {
       buf.add(",@");
       buf.add( printToString( spliced ));
     }
-    case Cons(hd, Atom(Nil)): {
+    case Cons(hd, Nil): {
       if (!inList) buf.add("(");
       buf.add( printToString(hd) );
       buf.add(")");

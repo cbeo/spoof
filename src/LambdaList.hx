@@ -8,7 +8,7 @@ class LambdaList {
     var valid = true;
     sexpr.foreach( val -> {
         switch (val) {
-        case Atom(Nil) | Atom(True) | Atom(Sym("TRUE")) | Atom(Sym("NIL")):
+        case Nil | True | Sym("TRUE") | Sym("NIL"):
           valid = false;
 
         case expr:
@@ -30,15 +30,15 @@ class LambdaList {
     var bindings = new PairBindings();
 
     while (true) switch ([lambdaList, vals]) {
-      case [Atom(Nil), Atom(Nil)]:
+      case [Nil, Nil]:
         return Some(bindings);
 
-      case [Cons(Atom(Sym("&REST")), Cons(Atom(Sym(name)), _)), vals]: {
+      case [Cons(Sym("&REST"), Cons(Sym(name), _)), vals]: {
         bindings.set(name,vals);
         return Some(bindings);
       }
 
-      case [Cons(Atom(Sym(name)), llTail), Cons(head, valsTail)]: {
+      case [Cons(Sym(name), llTail), Cons(head, valsTail)]: {
         bindings.set(name,head);
         vals = valsTail;
         lambdaList = llTail;

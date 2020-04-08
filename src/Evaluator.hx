@@ -30,61 +30,61 @@ class Evaluator {
         fenv = if (fenv == null) globalFenv else fenv;
 
         return switch (sexpr) {
-            case Atom(Sym("NIL")):
-            Ok(Atom(Nil));
+            case Sym("NIL"):
+            Ok(Nil);
             
-            case Atom(Sym("TRUE")):
-            Ok(Atom(True));
+            case Sym("TRUE"):
+            Ok(True);
             
-            case Atom(Sym(name)):
+            case Sym(name):
             evalSymbol(name, env);
             
-            case Atom(_): // keywords, strings, numbers, objects, functions
+            case atom if (atom.isAtom()): // keywords, strings, numbers, objects, functions
             Ok(sexpr);
             
-            case Cons(Atom(Sym("#QUASIQUOTE")), Cons(expr, Atom(Nil))):
+            case Cons(Sym("#QUASIQUOTE"), Cons(expr, Nil)):
             evalQuasiQuoted(expr, env, fenv);
             
-            case Cons(Atom(Sym("QUOTE")), Cons(expr,Atom(Nil))):
+            case Cons(Sym("QUOTE"), Cons(expr,Nil)):
             Ok(expr);
             
-            case Cons(Atom(Sym("IF")), Cons(condExpr, Cons(thenExpr, elseExpr))):
+            case Cons(Sym("IF"), Cons(condExpr, Cons(thenExpr, elseExpr))):
             evalIf(condExpr, thenExpr, elseExpr, env, fenv);
             
-            case Cons(Atom(Sym("PROGN")), rest):
+            case Cons(Sym("PROGN"), rest):
             evalDo(rest, env, fenv);
             
-            case Cons(Atom(Sym("LAMBDA")),  Cons(lambdaList, body)):
+            case Cons(Sym("LAMBDA"),  Cons(lambdaList, body)):
             makeFunction(lambdaList, body, env, fenv);
 
-            case Cons(Atom(Sym("MACRO")), Cons(lambdaList, body)):
+            case Cons(Sym("MACRO"), Cons(lambdaList, body)):
             makeMacro(lambdaList, body, env, fenv);
             
-            case Cons(Atom(Sym("FUNCTION")), Cons( fn, Atom(Nil))):
+            case Cons(Sym("FUNCTION"), Cons( fn, Nil)):
             evalFunctionLookup(fn, env, fenv);
             
-            case Cons(Atom(Sym("DEFVAR")), Cons(Atom(Sym(variable)), Cons(expr, _))):
+            case Cons(Sym("DEFVAR"), Cons(Sym(variable), Cons(expr, _))):
             eval(expr, env, fenv).then( value -> {
                 globalEnv.update(variable, value, true);
-                return Ok(Atom(Sym(variable)));
+                return Ok(Sym(variable));
             });
 
-            case Cons(Atom(Sym("DEFUN")), Cons(Atom(Sym(variable)), Cons(lambdaList, body))):
+            case Cons(Sym("DEFUN"), Cons(Sym(variable), Cons(lambdaList, body))):
             makeFunction(lambdaList, body, env, fenv)
                 .then(fn -> switch(fn) {
-                    case Atom(Fn(fn)): {
+                    case Fn(fn): {
                         globalFenv.update(variable, {type:"function", value:fn}, true);
-                        return Ok(Atom(Sym(variable)));
+                        return Ok(Sym(variable));
                     }
                     default: throw "something has gone horribly wrong";
                 });
 
-            case Cons(Atom(Sym("DEFMACRO")), Cons(Atom(Sym(variable)), Cons(lambdaList, body))):
+            case Cons(Sym("DEFMACRO"), Cons(Sym(variable), Cons(lambdaList, body))):
             makeMacro(lambdaList, body, env, fenv)
                 .then (mac -> switch(mac) {
-                    case Atom(Macro(mac)): {
+                    case Macro(mac): {
                         globalFenv.update(variable, {type:"macro", value:mac}, true);
-                        return Ok(Atom(Sym(variable)));
+                        return Ok(Sym(variable));
                     }
                     default: throw "something has gone horribly wrong";
                 });
@@ -100,7 +100,7 @@ class Evaluator {
     function evalQuasiQuoted(sexpr:Sexpr, env:Env<Sexpr>, fenv:Env<TaggedFunctionValue>): EvalResult {
         switch (sexpr)
         {
-            case Cons(Cons(Atom(Sym("#UNQUOTE")), Cons(expr, Atom(Nil))), rest):
+            case Cons(Cons(Sym("#UNQUOTE"), Cons(expr, Nil)), rest):
             {
                 switch ( eval(expr, env, fenv) )
                 {
@@ -118,12 +118,12 @@ class Evaluator {
                 }
             };
 
-            case Cons(Cons(Atom(Sym("#SPLICE")), Cons(expr, Atom(Nil))), rest):
+            case Cons(Cons(Sym("#SPLICE"), Cons(expr, Nil)), rest):
             {
                 switch ( eval(expr, env, fenv) )
                 {
-                    case Ok(Atom(val)):
-                    return Err(SpliceError(Atom(val)));
+                    case Ok(val) if (!val.isList()):
+                    return Err(SpliceError(val));
 
                     case Ok(vals): switch ( evalQuasiQuoted( rest, env, fenv ))
                     {
@@ -150,7 +150,7 @@ class Evaluator {
                 }
             };
 
-            case Atom(a): return Ok(Atom(a));
+            default: return Ok(sexpr);
         }
     }
         
@@ -163,10 +163,10 @@ class Evaluator {
     
     function evalIf(condExpr, thenExpr, elseExpr, env, fenv): EvalResult {
         return switch (eval(condExpr, env, fenv)) {
-            case Ok(Atom(Nil)): switch (elseExpr) {
-                case Cons(elseExpr2, Atom(Nil)): eval( elseExpr2, env, fenv);
-                case Atom(Nil): Ok(Atom(Nil));
-                default: Err(MalformedIfForm(Cons(Atom(Sym("IF")), Cons(thenExpr, elseExpr))));
+            case Ok(Nil): switch (elseExpr) {
+                case Cons(elseExpr2, Nil): eval( elseExpr2, env, fenv);
+                case Nil: Ok(Nil);
+                default: Err(MalformedIfForm(Cons(Sym("IF"), Cons(thenExpr, elseExpr))));
             }
             case Ok(_): eval( thenExpr, env, fenv );
             case anError: anError;
@@ -175,7 +175,7 @@ class Evaluator {
     
     function evalDo(expr: Sexpr, env, fenv): EvalResult {
         switch (expr) {
-        case Atom(_):
+        case atom if (atom.isAtom()):
             return Ok(expr);        // I think this only happens when expr is Nil...??
             
         default: 
@@ -183,7 +183,7 @@ class Evaluator {
             while (true) 
                 switch (expr) {
                     
-                case Cons(hd, Atom(Nil)):
+                case Cons(hd, Nil):
                     return eval(hd, env, fenv);
                     
                 case Cons(hd, tl): {
@@ -216,7 +216,7 @@ class Evaluator {
                 case None: Err( BadFunctionApplication( lambdaListExpr, vals ));
             };
         };
-        return Ok(Atom(Macro(f)));
+        return Ok(Macro(f));
     }
 
     function makeFunction(lambdaListExpr: Sexpr,
@@ -239,26 +239,25 @@ class Evaluator {
                 case None:  Err(BadFunctionApplication(lambdaListExpr, vals));
             }
         };
-        return Ok(Atom(Fn(f)));
+        return Ok(Fn(f));
     }
     
     function evalFunctionLookup(f:Sexpr, env:Env<Sexpr>, fenv:Env<TaggedFunctionValue>):EvalResult {
-        // f is either an Atom(Fn(_)), a Cons(Atom(Sym("LAMBDA")), _), or an Atom(Sym("name"))
         return switch(f) {
-            case Atom(Fn(_)): Ok(f);
-            case Atom(Macro(_)): Ok(f);
+            case Fn(_): Ok(f);
+            case Macro(_): Ok(f);
 
-            case Atom(Sym(fname)):
+            case Sym(fname):
             switch (fenv.lookup(fname)) {
-            case Some({type:"function", value:fnVal}): Ok(Atom(Fn(fnVal)));
-            case Some({type:"macro", value:fnVal}): Ok(Atom(Macro(fnVal)));
+            case Some({type:"function", value:fnVal}): Ok(Fn(fnVal));
+            case Some({type:"macro", value:fnVal}): Ok(Macro(fnVal));
             default: Err(UnboundFunctionSymbol(fname));
             };
 
-            case Cons(Atom(Sym("MACRO")), Cons(lambdaList, body)):
+            case Cons(Sym("MACRO"), Cons(lambdaList, body)):
             makeMacro(lambdaList, body, env, fenv);
 
-            case Cons(Atom(Sym("LAMBDA")), Cons(lambdaList, body)):
+            case Cons(Sym("LAMBDA"), Cons(lambdaList, body)):
             makeFunction(lambdaList, body, env, fenv);
 
             default:
@@ -274,14 +273,14 @@ class Evaluator {
     {
         return evalFunctionLookup(fexpr, env, fenv)
             .then(fnTerm -> switch (fnTerm) {
-                case Atom(Macro(fn)): fn( args ).then( expr -> eval( expr, env, fenv));
-                case Atom(Fn(fn)): evalList(args, env, fenv).then(fn);
+                case Macro(fn): fn( args ).then( expr -> eval( expr, env, fenv));
+                case Fn(fn): evalList(args, env, fenv).then(fn);
                 default: Err(BadFunctionVal(fexpr)); // wont happen
             });
     }
         
     function evalList(args: Sexpr, env: Env<Sexpr>, fenv: Env<TaggedFunctionValue>): EvalResult {
-        var acc = Atom( Nil );
+        var acc =  Nil;
         while ( !args.isNil() ) switch ( args ) {
             case Cons( hd, tl ): {
                 args = tl;

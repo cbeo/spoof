@@ -7,13 +7,13 @@ class FunctionsPrelude {
         var sum = Z(0);
         var form = sexpr;
         while (!form.isNil() ) switch (form) {
-            case Cons(Atom(num),tail) if (PrimOps.isNumber(num)): {
+            case Cons(num,tail) if (num.isNumber()): {
                 form = tail;
                 sum = PrimOps.plus(sum, num);
             };
             default: return Err(PrimOpError(sexpr, "Trying to add something that is not a number."));
         }
-        return Ok(Atom(sum));
+        return Ok(sum);
     }
     
 
@@ -21,34 +21,34 @@ class FunctionsPrelude {
         var prod = Z(1);
         var form = sexpr;
         while (!form.isNil()) switch (form) {
-            case Cons(Atom(num),tail) if (PrimOps.isNumber(num)): {
+            case Cons(num,tail) if (num.isNumber()): {
                 form = tail;
                 prod = PrimOps.mult(prod, num);
             };
             default:
             return Err(PrimOpError(sexpr, "Trying to multiply non-numeric argumetns."));
         }
-        return Ok(Atom(prod));
+        return Ok(prod);
     }
     
 
     static function minus(sexpr: Sexpr):EvalResult {
         if (sexpr.isNil()) return Err(SyntaxError(sexpr));
         switch (sexpr) {
-        case Cons(Atom(hd),Atom(Nil)) if (PrimOps.isNumber(hd)):
-            return Ok(Atom(PrimOps.negate(hd)));
+        case Cons(hd, Nil) if (hd.isNumber()):
+            return Ok(hd.negate());
             
-        case Cons(Atom(hd), rest) if (PrimOps.isNumber(hd)): {
+        case Cons(hd, rest) if (hd.isNumber()): {
             var diff = hd;
             while ( !rest.isNil() ) switch (rest) {
-                case Cons(Atom(num), tl) if (PrimOps.isNumber(num)): {
+                case Cons(num, tl) if (num.isNumber()): {
                     diff = PrimOps.minus(diff, num);
                     rest = tl;
                 }
                 default:
                 return Err(PrimOpError(sexpr, "Trying to subtract something that is not a number."));
             }
-            return Ok(Atom(diff));
+            return Ok(diff);
         };
         default:
             return Err(PrimOpError(sexpr, "Trying to subtract something that is not a number."));
@@ -57,7 +57,7 @@ class FunctionsPrelude {
     
     static function cons(sexpr: Sexpr):EvalResult {
         return switch(sexpr) {
-            case Cons(hd, Cons(tl, Atom(Nil))):
+            case Cons(hd, Cons(tl, Nil)):
             Ok(Cons(hd,tl));
             default:
             Err(PrimOpError(sexpr, "CONS takes exactly two arguments"));
@@ -66,8 +66,8 @@ class FunctionsPrelude {
     
     static function first(sexpr: Sexpr):EvalResult {
         return switch (sexpr) {
-            case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
-            case Cons(Cons(hd,_),Atom(Nil)): Ok(hd);
+            case Cons(Nil,Nil): Ok(Nil);
+            case Cons(Cons(hd,_),Nil): Ok(hd);
             default:
             Err(PrimOpError(sexpr, "FIRST takes exactly one argument, either NIL or a CONS value"));
         };
@@ -75,8 +75,8 @@ class FunctionsPrelude {
     
     static function rest(sexpr: Sexpr):EvalResult {
         return switch (sexpr) {
-            case Cons(Atom(Nil),Atom(Nil)): Ok(Atom(Nil));
-            case Cons(Cons(_,tl),Atom(Nil)): Ok(tl);
+            case Cons(Nil,Nil): Ok(Nil);
+            case Cons(Cons(_,tl),Nil): Ok(tl);
             default:
             Err(PrimOpError(sexpr, "REST takes exactly one argument, either a NIL or a CONS value"));
         };
