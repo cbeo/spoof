@@ -135,8 +135,62 @@ class FunctionsPrelude {
             };
             default: Err(PrimOpError(sexpr, "FFI Error"));
         };            
+    }
 
+    static function stringp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(Str(_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
+    }
 
+    static function numberp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(R(_),Nil) | Cons(Z(_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function functionp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(Fn(_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function boolp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(sexpr0,Nil) if (sexpr0.isBool()): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function listp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(sexpr0,Nil) if (sexpr0.isList()): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function symbolp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(Sym(_),Nil) | Cons(Kwd(_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function keywordp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(Kwd(_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
+    }
+
+    static function consp(sexpr:Sexpr):EvalResult {
+        return switch(sexpr) {
+            case Cons(Cons(_,_),Nil): Ok(True);
+            default: Ok(Nil);
+        };
     }
     
     public function exists(name:UnicodeString):Bool {
@@ -146,14 +200,27 @@ class FunctionsPrelude {
 
     public function get(name:UnicodeString):Null<TaggedFunctionValue> {
         return switch (name) {
+            // primitve ops
             case "+": {type:"function", value:plus};
             case "-": {type:"function", value:minus};
             case "*": {type:"function", value:mult};
             case "EQUAL": {type:"function", value:equal};
+
+            // lists and cons cells
             case "CONS": {type:"function", value:cons};
             case "CAR" | "FIRST": {type:"function", value:first};
             case "CDR" | "REST" : {type:"function", value:rest};
 
+            // type predicates
+            case "STRINGP": {type:"function", value:stringp};
+            case "NUMBERP": {type:"function", value:numberp};
+            case "FUNCTIONP": {type:"function", value:functionp};
+            case "BOOLP": {type:"function", value:boolp};
+            case "LISTP": {type:"function", value:listp};
+            case "SYMBOLP": {type:"function", value:symbolp};
+            case "KEYWORDP": {type:"function", value:keywordp};
+            case "CONSP": {type:"function", value:consp};
+            
             // call foreign method:
             case "CALL-FOREIGN-METHOD": {type:"function", value:callForeignMethod};
             case "FOREIGN-FIELD": {type: "function", value:foreignField};

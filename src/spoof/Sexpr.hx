@@ -18,6 +18,7 @@ enum Sexpr {
 }
 
 class SexprExtensions {
+
     public static function isNil(exp:Sexpr):Bool {
         return switch (exp) { case Nil: true; default: false;};
     }
@@ -47,6 +48,35 @@ class SexprExtensions {
             default: false;
         };
     }
+
+    public static function isReal(expr:Sexpr):Bool {
+        return switch (expr) {
+            case R(_):true;
+            default: false;
+        };
+    }
+
+    public static function isInt(expr:Sexpr):Bool {
+        return switch (expr) {
+            case Z(_):true;
+            default: false;
+        };
+    }
+
+    public static function isChar(expr:Sexpr):Bool {
+        return switch (expr) {
+            case Char(_):true;
+            default: false;
+        };
+    }
+
+    public static function isBool(expr:Sexpr):Bool {
+        return switch (expr) {
+            case Nil | True:true;
+            default: false;
+        };
+    }
+
     
     public static function negate(expr:Sexpr):Sexpr {
         return switch (expr) {
