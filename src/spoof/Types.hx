@@ -1,3 +1,4 @@
+package spoof;
 
 typedef FnType = Sexpr -> EvalResult;
 

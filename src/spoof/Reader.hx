@@ -1,6 +1,6 @@
-package;
+package spoof;
 
-import Sexpr.*;
+//import Sexpr.*;
 
 typedef ReadError = {source: UnicodeString, position: Int, error: String};
 typedef ReadResult = Result<ReadError, Sexpr>;

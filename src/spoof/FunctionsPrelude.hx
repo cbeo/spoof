@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 class FunctionsPrelude {
     // can assume that the sexpr is going to be a list.

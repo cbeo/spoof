@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 @:using(Result.ResultExtensions)
 enum Result<E,T> {

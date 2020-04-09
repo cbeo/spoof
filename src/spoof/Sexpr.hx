@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 @:using(Sexpr.SexprExtensions)
 enum Sexpr {

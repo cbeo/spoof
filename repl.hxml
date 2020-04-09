@@ -1,5 +1,5 @@
 -cp src
 -dce no
--main Repl
+-main spoof.Repl
 -hl repl.hl
 

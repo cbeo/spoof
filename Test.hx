@@ -1,5 +1,10 @@
 package;
 
+import spoof.Reader;
+import spoof.Evaluator;
+import spoof.Sexpr;
+import spoof.Printer;
+
 class Test {
 
   public static function main () {

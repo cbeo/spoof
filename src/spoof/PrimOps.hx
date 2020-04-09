@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 class PrimOps {
     public static function plus(a:Sexpr, b:Sexpr):Sexpr {

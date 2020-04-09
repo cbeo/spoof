@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 typedef KVPair<T> = {name:UnicodeString, value: T};
 

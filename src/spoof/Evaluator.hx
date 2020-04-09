@@ -1,6 +1,6 @@
-package;
+package spoof;
 
-import Sexpr.*;
+//import Sexpr.*;
 
 // Special forms to include: quote, if, do (which is like progn in CL), lambda,
 // let, labels, function, throw, catch, mut (which is like setf in CL)

@@ -1,4 +1,4 @@
-package;
+package spoof;
 
 class Repl {
     public static function main () {
