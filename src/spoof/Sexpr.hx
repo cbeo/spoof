@@ -164,6 +164,15 @@ class SexprExtensions {
         return sexpr;
     }
 
+    public static function getf(plist:Sexpr, key:Sexpr): Sexpr {
+        return switch (plist) {
+            case Cons(keyEntry,Cons(valEntry, more)):
+            if ( equal(keyEntry, key) ) valEntry else getf(more, key);
+
+            default: Nil;
+        };
+    }
+
     public static function unwrap(exp:Sexpr,nilIsFalse = false):Dynamic {
         return switch(exp) {
             case Nil if (nilIsFalse): false;

@@ -218,7 +218,7 @@ class Evaluator {
         var f =
             function (vals:Sexpr)
         {
-            return switch( lambdaList.bind( vals )) {
+            return switch( lambdaList.bind( vals, (initExpr) -> eval(initExpr, env, fenv))) {
                 case Some(bindings): evalDo(body, env.extend( bindings ), fenv);
                 case None: Err( BadFunctionApplication( lambdaListExpr, vals ));
             };
@@ -241,7 +241,7 @@ class Evaluator {
         var f =
             function (vals:Sexpr)
         {
-            return switch (lambdaList.bind( vals )) {
+            return switch (lambdaList.bind( vals , (initExpr) -> eval(initExpr, env, fenv))) {
                 case Some(bindings): evalDo(body, env.extend( bindings ), fenv);
                 case None:  Err(BadFunctionApplication(lambdaListExpr, vals));
             }
